@@ -1,0 +1,102 @@
+/* Remove or comment out the Google Fonts import */
+/* @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Pacifico&display=swap"); */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
+
+  /* New color scheme variables */
+  --primary: 180 100% 35%; /* Teal */
+  --primary-light: 180 70% 85%;
+  --primary-dark: 180 100% 25%;
+
+  --secondary: 50 100% 60%; /* Yellow */
+  --secondary-light: 50 100% 90%;
+  --secondary-dark: 50 100% 45%;
+
+  --accent: 160 70% 40%; /* Mint Green */
+  --accent-light: 160 70% 90%;
+
+  --neutral: 200 15% 95%;
+  --neutral-dark: 200 10% 20%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  font-family: var(--font-outfit);
+}
+
+/* Replace the font-comic class to use the Next.js optimized font */
+.font-comic {
+  font-family: var(--font-fredoka);
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 200 10% 20%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 10% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 10% 20%;
+    --primary: 180 100% 35%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 50 100% 60%;
+    --secondary-foreground: 200 10% 20%;
+    --muted: 180 70% 95%;
+    --muted-foreground: 180 10% 40%;
+    --accent: 160 70% 40%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 180 70% 90%;
+    --input: 180 70% 90%;
+    --ring: 180 100% 35%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 200 10% 10%;
+    --foreground: 210 40% 98%;
+    --card: 200 10% 15%;
+    --card-foreground: 210 40% 98%;
+    --popover: 200 10% 15%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 180 100% 45%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 50 100% 60%;
+    --secondary-foreground: 200 10% 20%;
+    --muted: 180 30% 20%;
+    --muted-foreground: 180 10% 70%;
+    --accent: 160 70% 40%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 180 30% 25%;
+    --input: 180 30% 25%;
+    --ring: 180 100% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
