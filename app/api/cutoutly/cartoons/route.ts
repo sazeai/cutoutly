@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
       total: count,
       page,
       limit,
-      totalPages: Math.ceil(count / limit),
+      totalPages: Math.ceil((count ?? 0) / limit),
     })
   } catch (error) {
     console.error("Error in cartoons API:", error)

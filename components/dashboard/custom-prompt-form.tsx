@@ -31,7 +31,7 @@ export function CustomPromptForm({ onGenerate, isGenerating }: CustomPromptFormP
   }
 
   return (
-    <div className="bg-white rounded-2xl border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0)] p-4">
+    <div className="bg-white rounded-xl border-2 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-4">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="custom-prompt" className="text-lg font-semibold">

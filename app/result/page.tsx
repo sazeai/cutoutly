@@ -72,7 +72,7 @@ export default function ResultPage() {
 
           {/* Right Column - Sharing & Caption */}
           <div className="space-y-8">
-            <Card className="border-2 border-black p-6 shadow-[8px_8px_0_rgba(0,0,0,1)] bg-white">
+            <Card className="border-2 border-black p-6 shadow-[4px_4px_0_rgba(0,0,0,1)] bg-white">
               {/* Share Options */}
               <div className="mb-8">
                 <h2 className="text-xl font-bold mb-4">Share Your Comic</h2>

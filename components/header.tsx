@@ -45,10 +45,10 @@ export function Header({ currentPage, initialUser }: HeaderProps) {
 
   return (
     <div className="fixed top-6 left-4 right-4 z-50">
-      <div className="mx-auto max-w-7xl bg-white border-2 border-black rounded-full px-4 py-2 flex justify-between items-center shadow-[0_4px_0_rgba(0,0,0,0.3)]">
+      <div className="container mx-auto bg-white rounded-xl border-2 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-2 px-4 mb-4 flex justify-between items-center ">
         <Link href="/" className="flex items-center">
           <span className="text-xl font-bold mr-2 font-comic text-primary">Cutoutly</span>
-          <span className="text-sm bg-gradient-to-r from-primary to-secondary text-white px-2 py-0.5 rounded-full">
+          <span className="text-sm bg-gradient-to-r from-primary to-secondary text-white px-2 py-0.5 rounded-xl">
             Beta
           </span>
         </Link>
@@ -61,7 +61,7 @@ export function Header({ currentPage, initialUser }: HeaderProps) {
               {!currentPage && (
                 <Link
                   href="/dashboard"
-                  className="px-4 py-1.5 text-sm font-bold text-black bg-gradient-to-r from-primary-light to-secondary-light rounded-full shadow-[0_4px_0_rgba(0,0,0,1)] transform hover:translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,0,0,1)] transition-all"
+                  className="px-4 py-1.5 text-sm border-2 border-black shadow-[0_4px_0_rgba(0,0,0,1)]  font-bold text-black bg-gradient-to-r from-primary-light to-secondary-light rounded-xl transform hover:translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,0,0,1)] transition-all"
                 >
                   Create
                 </Link>
@@ -71,14 +71,14 @@ export function Header({ currentPage, initialUser }: HeaderProps) {
             <>
               <Link
                 href="/login"
-                className="mr-2 px-3 py-1 text-sm font-medium text-black bg-gray-100 rounded-full hover:bg-gray-200 transition-colors"
+                className="mr-2 px-3 py-1 text-sm font-medium text-black bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Sign In
               </Link>
               {!currentPage && (
                 <Link
                   href="/dashboard"
-                  className="px-4 py-1.5 text-sm font-bold text-black bg-gradient-to-r from-primary-light to-secondary-light rounded-full shadow-[0_4px_0_rgba(0,0,0,1)] transform hover:translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,0,0,1)] transition-all"
+                  className="px-4 py-1.5 text-sm font-bold text-black bg-gradient-to-r from-primary-light to-secondary-light rounded-xl shadow-[0_4px_0_rgba(0,0,0,1)] transform hover:translate-y-0.5 hover:shadow-[0_2px_0_rgba(0,0,0,1)] transition-all"
                 >
                   Create
                 </Link>
@@ -98,10 +98,10 @@ export function Header({ currentPage, initialUser }: HeaderProps) {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="absolute top-full right-0 mt-2 w-48 bg-white border-2 border-black rounded-xl shadow-[0_4px_0_rgba(0,0,0,0.3)] py-2 md:hidden">
+          <div className="absolute top-full right-0 mt-2 w-48 bg-white border-2 border-black rounded-2xl shadow-[0_4px_0_rgba(0,0,0,0.3)] py-2 md:hidden">
             {user ? (
               <>
-                <div className="px-4 py-2 border-b border-gray-100">
+                <div className="px-4 py-2  border-b border-gray-100">
                   <p className="text-xs text-gray-500">Signed in as</p>
                   <p className="truncate text-sm font-medium">{user.email}</p>
                 </div>

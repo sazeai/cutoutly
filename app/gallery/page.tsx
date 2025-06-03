@@ -44,7 +44,7 @@ export default async function GalleryPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {comics.map((comic) => (
               <Link href={`/result/${comic.id}`} key={comic.id}>
-                <div className="border-2 border-black rounded-xl overflow-hidden bg-white shadow-[8px_8px_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 transition-all">
+                <div className="border-2 border-black rounded-xl overflow-hidden bg-white shadow-[4px_4px_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 transition-all">
                   <div className="aspect-square relative">
                     <Image
                       src={comic.comic_url || "/placeholder.svg?height=400&width=400&query=comic%20strip"}

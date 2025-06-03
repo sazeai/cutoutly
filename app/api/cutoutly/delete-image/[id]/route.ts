@@ -1,13 +1,26 @@
 import { createClient } from "@/utils/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  // Initialize response data
+  let responseData = {
+    success: false,
+    message: "",
+    error: null as string | null,
+    deletedImageId: null as string | null
+  }
+
   try {
-    // Get the image ID from the URL
-    const imageId = params.id
-    if (!imageId) {
-      return NextResponse.json({ error: "Image ID is required" }, { status: 400 })
+    // Validate the image ID parameter
+    if (!params?.id) {
+      responseData.error = "Image ID is required"
+      return NextResponse.json(responseData, { status: 400 })
     }
+
+    const imageId = params.id
 
     // Get the authenticated user
     const supabase = await createClient()
@@ -17,7 +30,8 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      responseData.error = "Unauthorized - Please sign in to delete images"
+      return NextResponse.json(responseData, { status: 401 })
     }
 
     // Get the image data to check ownership and get the file path
@@ -25,21 +39,34 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       .from("cutoutly_cartoons")
       .select("*")
       .eq("id", imageId)
-      .eq("user_id", user.id) // Ensure the image belongs to the authenticated user
+      .eq("user_id", user.id)
       .single()
 
-    if (fetchError || !image) {
+    if (fetchError) {
       console.error("Error fetching image:", fetchError)
-      return NextResponse.json({ error: "Image not found or access denied" }, { status: 404 })
+      responseData.error = "Failed to fetch image details"
+      return NextResponse.json(responseData, { status: 500 })
+    }
+
+    if (!image) {
+      responseData.error = "Image not found or you don't have permission to delete it"
+      return NextResponse.json(responseData, { status: 404 })
     }
 
     // Delete the image file from storage if it exists
     if (image.output_image_path) {
-      const { error: storageError } = await supabase.storage.from("cutoutly").remove([image.output_image_path])
+      try {
+        const { error: storageError } = await supabase.storage
+          .from("cutoutly")
+          .remove([image.output_image_path])
 
-      if (storageError) {
-        console.error("Error deleting image from storage:", storageError)
-        // Continue with database deletion even if storage deletion fails
+        if (storageError) {
+          console.error("Error deleting image from storage:", storageError)
+          // Log the error but continue with database deletion
+        }
+      } catch (storageError) {
+        console.error("Error in storage deletion:", storageError)
+        // Log the error but continue with database deletion
       }
     }
 
@@ -48,17 +75,35 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       .from("cutoutly_cartoons")
       .delete()
       .eq("id", imageId)
-      .eq("user_id", user.id) // Ensure the image belongs to the authenticated user
+      .eq("user_id", user.id)
 
     if (deleteError) {
       console.error("Error deleting image from database:", deleteError)
-      return NextResponse.json({ error: "Failed to delete image" }, { status: 500 })
+      responseData.error = "Failed to delete image from database"
+      return NextResponse.json(responseData, { status: 500 })
     }
 
-    // Return success response
-    return NextResponse.json({ success: true, message: "Image deleted successfully" })
+    // Success response
+    responseData = {
+      success: true,
+      message: "Image deleted successfully",
+      error: null,
+      deletedImageId: imageId
+    }
+
+    return NextResponse.json(responseData, { status: 200 })
+
   } catch (error) {
+    // Handle any unexpected errors
     console.error("Error in delete-image API:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    
+    responseData = {
+      success: false,
+      message: "",
+      error: error instanceof Error ? error.message : "An unexpected error occurred",
+      deletedImageId: null
+    }
+
+    return NextResponse.json(responseData, { status: 500 })
   }
 }

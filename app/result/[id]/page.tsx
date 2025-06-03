@@ -97,7 +97,7 @@ export default function ResultPage({ params }: { params: { id: string } }) {
       <Header currentPage="Result" />
 
       <div className="w-full max-w-4xl mx-auto mt-8 md:mt-16 z-10 px-4 py-8">
-        <div className="bg-white rounded-xl shadow-[8px_8px_0_rgba(0,0,0,1)] border-2 border-black p-6 md:p-8">
+        <div className="bg-white rounded-xl shadow-[4px_4px_0_rgba(0,0,0,1)] border-2 border-black p-6 md:p-8">
           <h1 className="text-2xl md:text-3xl font-bold mb-2 text-center">{comic.title || "Your Comic Strip"}</h1>
           <p className="text-gray-600 text-center mb-6">Based on your mood: "{comic.mood}"</p>
 

@@ -10,7 +10,7 @@ export default function ErrorPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-light/30 via-white to-secondary-light/30 p-4">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border-2 border-black bg-white p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0)]">
+        <div className="rounded-xl border-2 border-black bg-white p-8 shadow-[4px_4px_0_rgba(0,0,0,1)]">
           <h2 className="mb-6 text-center text-3xl font-bold text-red-600">Error</h2>
 
           <div className="mb-6 rounded-md bg-red-50 p-4 text-center text-red-700">{error}</div>

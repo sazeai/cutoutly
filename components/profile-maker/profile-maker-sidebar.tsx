@@ -8,14 +8,11 @@ import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2 } from "lucide-react"
 import { UploadStep } from "./steps/upload-step"
-import { PoseStep } from "./steps/pose-step"
-import { PropStep } from "./steps/prop-step"
 import { StyleStep } from "./steps/style-step"
-import { SpeechBubbleStep } from "./steps/speech-bubble-step"
-import { UseCaseStep } from "./steps/use-case-step"
+import { OutfitStep } from "./steps/outfit-step"
 import { SizeStep } from "./steps/size-step"
 
-interface DashboardSidebarProps {
+interface ProfileMakerSidebarProps {
   onGenerate: (formData: any) => void
   isGenerating: boolean
   savedFaceId?: string | null
@@ -23,23 +20,20 @@ interface DashboardSidebarProps {
   onSavedFaceChange?: (faceId: string | null) => void
 }
 
-export function DashboardSidebar({
+export function ProfileMakerSidebar({
   onGenerate,
   isGenerating,
   savedFaceId = null,
   isLoadingFace = false,
   onSavedFaceChange,
-}: DashboardSidebarProps) {
+}: ProfileMakerSidebarProps) {
   const [activeStep, setActiveStep] = useState("1")
   const [formData, setFormData] = useState({
     image: null,
     savedFaceId: savedFaceId,
-    pose: "pointing",
-    prop: "none",
-    style: "cute",
-    expression: "happy",
-    speechBubble: "",
-    useCase: "website",
+    style: "realistic",
+    expression: "smiling",
+    outfitTheme: "casual",
     size: "1024x1024",
   })
 
@@ -61,7 +55,7 @@ export function DashboardSidebar({
 
   const handleNext = () => {
     const currentStep = Number.parseInt(activeStep)
-    if (currentStep < 7) {
+    if (currentStep < 4) {
       setActiveStep((currentStep + 1).toString())
     }
   }
@@ -82,8 +76,8 @@ export function DashboardSidebar({
     <Card className="border-2 border-black rounded-xl bg-white p-4 shadow-[4px_4px_0_rgba(0,0,0,1)]">
       <form onSubmit={handleSubmit}>
         <Tabs value={activeStep} onValueChange={setActiveStep} className="w-full">
-          <TabsList className="grid grid-cols-7 mb-4">
-            {[...Array(7)].map((_, i) => (
+          <TabsList className="grid grid-cols-4 mb-4">
+            {[...Array(4)].map((_, i) => (
               <TabsTrigger
                 key={i}
                 value={(i + 1).toString()}
@@ -117,32 +111,6 @@ export function DashboardSidebar({
           </TabsContent>
 
           <TabsContent value="2">
-            <h3 className="text-xl font-bold mb-4">Choose Pose</h3>
-            <PoseStep value={formData.pose} onChange={(value) => updateFormData("pose", value)} />
-            <div className="flex justify-between mt-4">
-              <Button type="button" variant="outline" onClick={handlePrevious}>
-                Back
-              </Button>
-              <Button type="button" onClick={handleNext}>
-                Next
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="3">
-            <h3 className="text-xl font-bold mb-4">Add Prop or Object</h3>
-            <PropStep value={formData.prop} onChange={(value) => updateFormData("prop", value)} />
-            <div className="flex justify-between mt-4">
-              <Button type="button" variant="outline" onClick={handlePrevious}>
-                Back
-              </Button>
-              <Button type="button" onClick={handleNext}>
-                Next
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="4">
             <h3 className="text-xl font-bold mb-4">Style & Expression</h3>
             <StyleStep
               style={formData.style}
@@ -160,12 +128,9 @@ export function DashboardSidebar({
             </div>
           </TabsContent>
 
-          <TabsContent value="5">
-            <h3 className="text-xl font-bold mb-4">Add Speech Bubble</h3>
-            <SpeechBubbleStep
-              value={formData.speechBubble}
-              onChange={(value) => updateFormData("speechBubble", value)}
-            />
+          <TabsContent value="3">
+            <h3 className="text-xl font-bold mb-4">Outfit Theme</h3>
+            <OutfitStep value={formData.outfitTheme} onChange={(value) => updateFormData("outfitTheme", value)} />
             <div className="flex justify-between mt-4">
               <Button type="button" variant="outline" onClick={handlePrevious}>
                 Back
@@ -176,20 +141,7 @@ export function DashboardSidebar({
             </div>
           </TabsContent>
 
-          <TabsContent value="6">
-            <h3 className="text-xl font-bold mb-4">Use Case Template</h3>
-            <UseCaseStep value={formData.useCase} onChange={(value) => updateFormData("useCase", value)} />
-            <div className="flex justify-between mt-4">
-              <Button type="button" variant="outline" onClick={handlePrevious}>
-                Back
-              </Button>
-              <Button type="button" onClick={handleNext}>
-                Next
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="7">
+          <TabsContent value="4">
             <h3 className="text-xl font-bold mb-4">Size Selection</h3>
             <SizeStep value={formData.size} onChange={(value) => updateFormData("size", value)} />
             <div className="flex justify-between mt-4">
@@ -207,7 +159,7 @@ export function DashboardSidebar({
                     Generating...
                   </>
                 ) : (
-                  "Create PNG"
+                  "Create Avatar"
                 )}
               </Button>
             </div>
@@ -216,4 +168,4 @@ export function DashboardSidebar({
       </form>
     </Card>
   )
-}
+} 

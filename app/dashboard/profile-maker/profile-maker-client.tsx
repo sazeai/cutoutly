@@ -2,24 +2,21 @@
 
 import { useState, useEffect } from "react"
 import { useToast } from "@/hooks/use-toast"
-import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar"
-import { ImageGallery } from "@/components/dashboard/image-gallery"
-import { generateCutoutly } from "@/app/actions/generate-cutoutly"
+import { generateAvatar } from "@/app/actions/generate-avatar"
 import { createClient } from "@/utils/supabase/client"
-import { ModeToggle } from "@/components/dashboard/mode-toggle"
-import { CustomPromptForm } from "@/components/dashboard/custom-prompt-form"
+import { ImageGallery } from "@/components/dashboard/image-gallery"
+import { ProfileMakerSidebar } from "@/components/profile-maker/profile-maker-sidebar"
 
-interface DashboardClientProps {
+interface ProfileMakerClientProps {
   user: any
 }
 
-export function DashboardClient({ user }: DashboardClientProps) {
+export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
   const { toast } = useToast()
   const [isGenerating, setIsGenerating] = useState(false)
-  const [currentCartoonId, setCurrentCartoonId] = useState<string | null>(null)
+  const [currentAvatarId, setCurrentAvatarId] = useState<string | null>(null)
   const [savedFaceId, setSavedFaceId] = useState<string | null>(null)
   const [isLoadingFace, setIsLoadingFace] = useState(true)
-  const [isCustomMode, setIsCustomMode] = useState(false)
   const [generatedImages, setGeneratedImages] = useState<
     Array<{
       id: string
@@ -29,40 +26,40 @@ export function DashboardClient({ user }: DashboardClientProps) {
   >([])
   const [pendingImageId, setPendingImageId] = useState<string | null>(null)
 
-  // Fetch existing cartoons and saved face on page load
+  // Fetch existing avatars and saved face on page load
   useEffect(() => {
     const fetchUserData = async () => {
       setIsLoadingFace(true)
       try {
-        // Fetch cartoons
+        // Fetch avatars
         const supabase = createClient()
-        const { data: cartoons } = await supabase
-          .from("cutoutly_cartoons")
+        const { data: avatars } = await supabase
+          .from("cutoutly_avatars")
           .select("*")
           .eq("user_id", user.id)
           .eq("status", "completed")
           .order("created_at", { ascending: false })
           .limit(12)
 
-        if (cartoons) {
+        if (avatars) {
           setGeneratedImages(
-            cartoons.map((cartoon: any) => ({
-              id: cartoon.id,
-              url: cartoon.output_image_path
-                ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${cartoon.output_image_path}`
+            avatars.map((avatar: any) => ({
+              id: avatar.id,
+              url: avatar.output_image_path
+                ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${avatar.output_image_path}`
                 : "",
-              createdAt: cartoon.created_at,
+              createdAt: avatar.created_at,
             })),
           )
         }
 
         // Try to get saved face ID from localStorage first
-        const storedFaceId = localStorage.getItem("cutoutly_saved_face_id")
+        const storedFaceId = localStorage.getItem("cutoutly_saved_profile_face_id")
 
         if (storedFaceId) {
           // Verify the saved face exists in the database
           const { data: savedFace, error } = await supabase
-            .from("cutoutly_saved_faces")
+            .from("cutoutly_saved_profile_faces")
             .select("*")
             .eq("id", storedFaceId)
             .single()
@@ -72,7 +69,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
           } else {
             // If not found, try to get the most recent saved face
             const { data: recentFace } = await supabase
-              .from("cutoutly_saved_faces")
+              .from("cutoutly_saved_profile_faces")
               .select("*")
               .eq("user_id", user.id)
               .order("created_at", { ascending: false })
@@ -80,17 +77,17 @@ export function DashboardClient({ user }: DashboardClientProps) {
               .single()
 
             if (recentFace) {
-              localStorage.setItem("cutoutly_saved_face_id", recentFace.id)
+              localStorage.setItem("cutoutly_saved_profile_face_id", recentFace.id)
               setSavedFaceId(recentFace.id)
             } else {
-              localStorage.removeItem("cutoutly_saved_face_id")
+              localStorage.removeItem("cutoutly_saved_profile_face_id")
               setSavedFaceId(null)
             }
           }
         } else {
           // If no localStorage item, check if user has any saved faces
           const { data: recentFace } = await supabase
-            .from("cutoutly_saved_faces")
+            .from("cutoutly_saved_profile_faces")
             .select("*")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false })
@@ -98,7 +95,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
             .single()
 
           if (recentFace) {
-            localStorage.setItem("cutoutly_saved_face_id", recentFace.id)
+            localStorage.setItem("cutoutly_saved_profile_face_id", recentFace.id)
             setSavedFaceId(recentFace.id)
           }
         }
@@ -116,17 +113,17 @@ export function DashboardClient({ user }: DashboardClientProps) {
 
   // Poll for status updates when generating
   useEffect(() => {
-    if (!currentCartoonId || !isGenerating) return
+    if (!currentAvatarId || !isGenerating) return
 
     const checkStatus = async () => {
       try {
         const supabase = createClient()
 
-        // Get the cartoon status
-        const { data: cartoon, error } = await supabase
-          .from("cutoutly_cartoons")
+        // Get the avatar status
+        const { data: avatar, error } = await supabase
+          .from("cutoutly_avatars")
           .select("*")
-          .eq("id", currentCartoonId)
+          .eq("id", currentAvatarId)
           .single()
 
         if (error) {
@@ -134,34 +131,34 @@ export function DashboardClient({ user }: DashboardClientProps) {
         }
 
         // Handle different statuses
-        if (cartoon.status === "completed") {
+        if (avatar.status === "completed") {
           setIsGenerating(false)
-          setCurrentCartoonId(null)
+          setCurrentAvatarId(null)
 
           // Add the new image to the gallery
-          if (cartoon.output_image_path) {
-            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${cartoon.output_image_path}`
+          if (avatar.output_image_path) {
+            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${avatar.output_image_path}`
 
             // Set the pending image ID to avoid duplicates
-            setPendingImageId(cartoon.id)
+            setPendingImageId(avatar.id)
 
             // Fetch the latest images to ensure we have the most up-to-date list
-            const { data: latestCartoons } = await supabase
-              .from("cutoutly_cartoons")
+            const { data: latestAvatars } = await supabase
+              .from("cutoutly_avatars")
               .select("*")
               .eq("user_id", user.id)
               .eq("status", "completed")
               .order("created_at", { ascending: false })
               .limit(12)
 
-            if (latestCartoons) {
+            if (latestAvatars) {
               setGeneratedImages(
-                latestCartoons.map((c: any) => ({
-                  id: c.id,
-                  url: c.output_image_path
-                    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${c.output_image_path}`
+                latestAvatars.map((a: any) => ({
+                  id: a.id,
+                  url: a.output_image_path
+                    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${a.output_image_path}`
                     : "",
-                  createdAt: c.created_at,
+                  createdAt: a.created_at,
                 })),
               )
             }
@@ -173,32 +170,32 @@ export function DashboardClient({ user }: DashboardClientProps) {
           }
 
           toast({
-            title: "Cartoon generated!",
-            description: "Your cartoon PNG has been created successfully.",
+            title: "Avatar generated!",
+            description: "Your profile picture has been created successfully.",
           })
           return
         }
 
-        if (cartoon.status === "failed") {
+        if (avatar.status === "failed") {
           setIsGenerating(false)
-          setCurrentCartoonId(null)
+          setCurrentAvatarId(null)
           toast({
             title: "Generation failed",
-            description: cartoon.error_message || "An unexpected error occurred.",
+            description: avatar.error_message || "An unexpected error occurred.",
             variant: "destructive",
           })
           return
         }
 
         // If still processing, trigger the next processing step
-        if (cartoon.status === "processing") {
+        if (avatar.status === "processing") {
           // Call the process endpoint to continue processing
-          await fetch(`/api/cutoutly/process/${currentCartoonId}`, {
+          await fetch(`${window.location.origin}/api/cutoutly/process-avatar/${currentAvatarId}`, {
             method: "POST",
           })
         }
       } catch (error) {
-        console.error("Error checking cartoon status:", error)
+        console.error("Error checking avatar status:", error)
       }
     }
 
@@ -207,28 +204,25 @@ export function DashboardClient({ user }: DashboardClientProps) {
     const statusInterval = setInterval(checkStatus, 3000)
 
     return () => clearInterval(statusInterval)
-  }, [currentCartoonId, isGenerating, toast, user.id])
+  }, [currentAvatarId, isGenerating, toast, user.id])
 
-  // Handle structured form submission
-  const handleGenerateStructured = async (formData: any) => {
+  // Handle form submission
+  const handleGenerate = async (formData: any) => {
     try {
       setIsGenerating(true)
 
-      const result = await generateCutoutly({
+      const result = await generateAvatar({
         image: formData.image,
         savedFaceId: formData.savedFaceId || null,
-        pose: formData.pose,
-        prop: formData.prop,
         style: formData.style,
         expression: formData.expression,
-        speechBubble: formData.speechBubble,
-        useCase: formData.useCase,
+        outfitTheme: formData.outfitTheme,
         size: formData.size,
-        isCustomMode: false,
+        userId: user.id,
       })
 
-      if (result.success && result.cartoonId) {
-        setCurrentCartoonId(result.cartoonId)
+      if (result.success && result.avatarId) {
+        setCurrentAvatarId(result.avatarId)
       } else {
         toast({
           title: "Generation failed",
@@ -238,38 +232,6 @@ export function DashboardClient({ user }: DashboardClientProps) {
         setIsGenerating(false)
       }
     } catch (error) {
-      toast({
-        title: "Generation failed",
-        description: "An unexpected error occurred.",
-        variant: "destructive",
-      })
-      setIsGenerating(false)
-    }
-  }
-
-  // Handle custom prompt submission
-  const handleGenerateCustom = async (data: { prompt: string; size: string }) => {
-    try {
-      setIsGenerating(true)
-
-      const result = await generateCutoutly({
-        customPrompt: data.prompt,
-        size: data.size,
-        isCustomMode: true,
-      })
-
-      if (result.success && result.cartoonId) {
-        setCurrentCartoonId(result.cartoonId)
-      } else {
-        toast({
-          title: "Generation failed",
-          description: result.error || "An unexpected error occurred.",
-          variant: "destructive",
-        })
-        setIsGenerating(false)
-      }
-    } catch (error) {
-      console.error("Custom prompt generation error:", error)
       toast({
         title: "Generation failed",
         description: "An unexpected error occurred.",
@@ -283,15 +245,10 @@ export function DashboardClient({ user }: DashboardClientProps) {
   const handleSavedFaceChange = (faceId: string | null) => {
     setSavedFaceId(faceId)
     if (faceId) {
-      localStorage.setItem("cutoutly_saved_face_id", faceId)
+      localStorage.setItem("cutoutly_saved_profile_face_id", faceId)
     } else {
-      localStorage.removeItem("cutoutly_saved_face_id")
+      localStorage.removeItem("cutoutly_saved_profile_face_id")
     }
-  }
-
-  // Handle mode toggle
-  const handleModeChange = (mode: boolean) => {
-    setIsCustomMode(mode)
   }
 
   // Handle image deletion
@@ -301,23 +258,18 @@ export function DashboardClient({ user }: DashboardClientProps) {
 
   return (
     <div className="container mx-auto pt-24 pb-12 px-4">
+    
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 mt-6 gap-6">
+      <div className="grid mt-6 grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Panel - Control Form */}
         <div className="lg:col-span-1">
-          <ModeToggle onModeChange={handleModeChange} isCustomMode={isCustomMode} />
-
-          {isCustomMode ? (
-            <CustomPromptForm onGenerate={handleGenerateCustom} isGenerating={isGenerating} />
-          ) : (
-            <DashboardSidebar
-              onGenerate={handleGenerateStructured}
-              isGenerating={isGenerating}
-              savedFaceId={savedFaceId}
-              isLoadingFace={isLoadingFace}
-              onSavedFaceChange={handleSavedFaceChange}
-            />
-          )}
+          <ProfileMakerSidebar
+            onGenerate={handleGenerate}
+            isGenerating={isGenerating}
+            savedFaceId={savedFaceId}
+            isLoadingFace={isLoadingFace}
+            onSavedFaceChange={handleSavedFaceChange}
+          />
         </div>
 
         {/* Right Panel - Image Gallery */}
@@ -332,4 +284,4 @@ export function DashboardClient({ user }: DashboardClientProps) {
       </div>
     </div>
   )
-}
+} 

@@ -123,14 +123,15 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       processingCartoons.delete(cartoonId)
       return result
     } catch (error) {
-      console.error(`Error processing cartoon ${cartoonId}:`, error)
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      console.error(`Error processing cartoon ${cartoonId}:`, errorMsg)
 
       // Update the cartoon status to failed using the authenticated client
       await supabase
         .from("cutoutly_cartoons")
         .update({
           status: "failed",
-          error_message: `Processing error: ${error.message}`,
+          error_message: `Processing error: ${errorMsg}`,
           last_processed: new Date().toISOString(),
         })
         .eq("id", cartoonId)
@@ -140,14 +141,15 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json(
         {
           status: "failed",
-          error: `Processing error: ${error.message}`,
+          error: `Processing error: ${errorMsg}`,
         },
         { status: 500 },
       )
     }
   } catch (error) {
-    console.error("Error in process-cartoon API:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error("Error in process-cartoon API:", errorMsg)
+    return NextResponse.json({ error: errorMsg || "Internal server error" }, { status: 500 })
   }
 }
 
@@ -196,8 +198,9 @@ async function processGeneratePrompt(cartoonId: string, cartoon: any, supabase: 
       message: "Prompt generated successfully",
     })
   } catch (error) {
-    console.error(`Error generating prompt: ${error.message}`)
-    throw new Error(`Failed to generate prompt: ${error.message}`)
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error(`Error generating prompt: ${errorMsg}`)
+    throw new Error(`Failed to generate prompt: ${errorMsg}`)
   }
 }
 
@@ -240,14 +243,13 @@ async function processGenerateCartoonWithoutImage(cartoonId: string, cartoon: an
 
     console.log(`✅ OpenAI API call completed in ${Date.now() - startApiCall}ms`)
     console.log(`Response structure:`, Object.keys(response))
-    console.log(`Response data length:`, response.data.length)
-
-    // Get the base64 image data
-    const imageBase64 = response.data[0].b64_json
-
-    if (!imageBase64) {
+    if (response?.data) {
+      console.log(`Response data length:`, response.data.length)
+    }
+    if (!response?.data?.[0]?.b64_json) {
       throw new Error("No image data returned from OpenAI")
     }
+    const imageBase64 = response.data[0].b64_json
 
     console.log(`Received base64 data of length: ${imageBase64.length} characters`)
 
@@ -374,14 +376,13 @@ async function processGenerateCartoon(cartoonId: string, cartoon: any, supabase:
 
     console.log(`✅ OpenAI API call completed in ${Date.now() - startApiCall}ms`)
     console.log(`Response structure:`, Object.keys(response))
-    console.log(`Response data length:`, response.data.length)
-
-    // Get the base64 image data
-    const imageBase64 = response.data[0].b64_json
-
-    if (!imageBase64) {
+    if (response?.data) {
+      console.log(`Response data length:`, response.data.length)
+    }
+    if (!response?.data?.[0]?.b64_json) {
       throw new Error("No image data returned from OpenAI")
     }
+    const imageBase64 = response.data[0].b64_json
 
     console.log(`Received base64 data of length: ${imageBase64.length} characters`)
 
@@ -477,7 +478,8 @@ async function processFinalizeCartoon(cartoonId: string, cartoon: any, supabase:
       await supabase.storage.from("cutoutly").remove([cartoon.input_image_path])
     }
   } catch (error) {
-    console.error(`Warning: Could not delete temporary image: ${error.message}`)
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error(`Warning: Could not delete temporary image: ${errorMsg}`)
     // Non-critical error, continue
   }
 

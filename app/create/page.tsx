@@ -333,7 +333,7 @@ export default function CreatePage() {
 
           {/* Right Column - Options */}
           <div className="space-y-6">
-            <div className="border-2 border-black rounded-xl p-6 shadow-[8px_8px_0_rgba(0,0,0,1)] bg-white">
+            <div className="border-2 border-black rounded-xl p-6 shadow-[4px_4px_0_rgba(0,0,0,1)] bg-white">
               {/* Step 3 & 4 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>

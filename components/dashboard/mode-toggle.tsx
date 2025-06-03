@@ -10,9 +10,8 @@ interface ModeToggleProps {
 
 export function ModeToggle({ isCustomMode, onModeChange }: ModeToggleProps) {
   return (
-    <div className="bg-white rounded-2xl border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0)] p-4 mb-6">
+    <div className="bg-white rounded-xl border-2 border-black shadow-[4px_4px_0_rgba(0,0,0,1)] p-4 mb-6">
       <div className="flex flex-col space-y-4">
-        <h2 className="text-xl font-bold">Creation Mode</h2>
 
         <div className="flex flex-col space-y-4">
           <div className="flex items-center justify-between">
@@ -34,19 +33,7 @@ export function ModeToggle({ isCustomMode, onModeChange }: ModeToggleProps) {
             />
           </div>
 
-          <div className={`p-3 rounded-lg ${isCustomMode ? "bg-teal-50" : "bg-yellow-50"} text-sm`}>
-            {isCustomMode ? (
-              <p>
-                <span className="font-semibold">Custom Mode:</span> Describe anything you want to create - animals,
-                objects, scenes, or characters. No image upload needed!
-              </p>
-            ) : (
-              <p>
-                <span className="font-semibold">Structured Mode:</span> Perfect for creating professional cutouts for
-                marketing, websites, and presentations.
-              </p>
-            )}
-          </div>
+         
         </div>
       </div>
     </div>

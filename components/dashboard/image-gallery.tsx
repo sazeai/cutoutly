@@ -106,7 +106,7 @@ export function ImageGallery({ images, isGenerating, pendingImageId, onImageDele
   }
 
   return (
-    <Card className="border-2 border-black rounded-xl bg-white p-4 shadow-[8px_8px_0_rgba(0,0,0,1)]">
+    <Card className="border-2 border-black rounded-xl bg-white p-4 shadow-[4px_4px_0_rgba(0,0,0,1)]">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Your Cartoons</h2>
         <div className="text-sm text-gray-500">{images.length} images</div>
