@@ -23,13 +23,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Image path is required" }, { status: 400 })
     }
 
-    // Create a new saved face entry with the user ID
+    // Use upsert to either update existing face or create new one
     const { data, error } = await supabase
       .from("cutoutly_saved_faces")
-      .insert({
-        face_image_path: imagePath,
-        user_id: user.id, // Associate with the authenticated user
-      })
+      .upsert(
+        {
+          user_id: user.id,
+          face_image_path: imagePath,
+        },
+        {
+          onConflict: "user_id",
+          ignoreDuplicates: false,
+        }
+      )
       .select()
       .single()
 

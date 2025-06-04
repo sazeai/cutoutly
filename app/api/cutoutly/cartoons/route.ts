@@ -1,6 +1,9 @@
 import { createClient } from "@/utils/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
+// Cache duration in seconds (5 minutes)
+const CACHE_DURATION = 300
+
 export async function GET(request: NextRequest) {
   try {
     // Use authenticated client instead of supabaseAdmin
@@ -56,13 +59,22 @@ export async function GET(request: NextRequest) {
       }),
     )
 
-    return NextResponse.json({
+    // Create the response
+    const response = NextResponse.json({
       cartoons: processedData,
       total: count,
       page,
       limit,
       totalPages: Math.ceil((count ?? 0) / limit),
     })
+
+    // Add cache control headers
+    response.headers.set(
+      "Cache-Control",
+      `public, s-maxage=${CACHE_DURATION}, stale-while-revalidate=${CACHE_DURATION * 2}`
+    )
+
+    return response
   } catch (error) {
     console.error("Error in cartoons API:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

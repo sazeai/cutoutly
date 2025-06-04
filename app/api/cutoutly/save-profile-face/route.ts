@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
+      console.error("❌ Authentication error:", authError)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -20,23 +21,41 @@ export async function POST(request: NextRequest) {
     const { imagePath } = await request.json()
 
     if (!imagePath) {
+      console.error("❌ No image path provided")
       return NextResponse.json({ error: "Image path is required" }, { status: 400 })
     }
 
-    // Create a new saved profile face entry with the user ID
+    console.log("💾 Saving profile face:", { 
+      userId: user.id,
+      imagePath 
+    })
+
+    // Use upsert to either update existing face or create new one
     const { data, error } = await supabase
       .from("cutoutly_saved_profile_faces")
-      .insert({
-        face_image_path: imagePath,
-        user_id: user.id, // Associate with the authenticated user
-      })
+      .upsert(
+        {
+          user_id: user.id,
+          face_image_path: imagePath,
+        },
+        {
+          onConflict: "user_id",
+          ignoreDuplicates: false,
+        }
+      )
       .select()
       .single()
 
     if (error) {
-      console.error("Error saving profile face:", error)
+      console.error("❌ Error saving profile face:", error)
       return NextResponse.json({ error: "Failed to save profile face" }, { status: 500 })
     }
+
+    console.log("✅ Profile face saved successfully:", { 
+      savedFaceId: data.id,
+      userId: data.user_id,
+      imagePath: data.face_image_path
+    })
 
     return NextResponse.json({
       success: true,
@@ -44,7 +63,7 @@ export async function POST(request: NextRequest) {
       message: "Profile face saved successfully",
     })
   } catch (error) {
-    console.error("Error in save-profile-face API:", error)
+    console.error("❌ Error in save-profile-face API:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 } 

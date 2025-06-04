@@ -21,7 +21,12 @@ interface ImageGalleryProps {
 export function ImageGallery({ images, isGenerating, pendingImageId, onImageDeleted }: ImageGalleryProps) {
   const [deletingImages, setDeletingImages] = useState<Set<string>>(new Set())
   const [downloadingImages, setDownloadingImages] = useState<Set<string>>(new Set())
+  const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const { toast } = useToast()
+
+  const handleImageLoad = (id: string) => {
+    setLoadedImages((prev) => new Set(prev).add(id))
+  }
 
   const handleDownload = async (image: { id: string; url: string }) => {
     if (downloadingImages.has(image.id)) return
@@ -140,11 +145,24 @@ export function ImageGallery({ images, isGenerating, pendingImageId, onImageDele
               backgroundPosition: "0 0, 0 10px, 10px -10px, -10px 0px",
             }}
           >
+            {/* Loading Skeleton */}
+            {!loadedImages.has(image.id) && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+                <div className="h-8 w-8 animate-spin text-primary border-2 border-primary border-t-transparent rounded-full" />
+              </div>
+            )}
+
             <Image
               src={image.url || "/placeholder.svg"}
               alt={`Generated cartoon`}
               fill
-              className="object-contain p-2"
+              loading="lazy"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className={`object-contain p-2 transition-opacity duration-300 ${
+                loadedImages.has(image.id) ? "opacity-100" : "opacity-0"
+              }`}
+              onLoad={() => handleImageLoad(image.id)}
+              priority={false}
             />
 
             {/* Delete button - Top left corner */}

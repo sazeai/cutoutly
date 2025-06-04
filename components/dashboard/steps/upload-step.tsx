@@ -16,6 +16,7 @@ interface UploadStepProps {
   savedFaceId?: string | null
   isLoadingFace?: boolean
   onSavedFaceChange?: (faceId: string | null) => void
+  onNext?: () => void
 }
 
 export function UploadStep({
@@ -24,6 +25,7 @@ export function UploadStep({
   savedFaceId = null,
   isLoadingFace = false,
   onSavedFaceChange,
+  onNext,
 }: UploadStepProps) {
   const { toast } = useToast()
   const [preview, setPreview] = useState<string | null>(null)
@@ -31,6 +33,7 @@ export function UploadStep({
   const [isFaceLocked, setIsFaceLocked] = useState(!!savedFaceId)
   const [savedFaceUrl, setSavedFaceUrl] = useState<string | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+  const [hasNewUpload, setHasNewUpload] = useState(false)
 
   // Check for saved face on component mount or when savedFaceId changes
   useEffect(() => {
@@ -67,6 +70,7 @@ export function UploadStep({
       setSavedFaceUrl(publicUrl)
       setIsFaceLocked(true)
       setPreview(publicUrl)
+      setHasNewUpload(false)
 
       // Create a fake File object for the form
       try {
@@ -102,6 +106,8 @@ export function UploadStep({
     if (!file) return
 
     onChange(file)
+    setHasNewUpload(true)
+    setIsFaceLocked(false)
 
     // Create preview URL
     const objectUrl = URL.createObjectURL(file)
@@ -125,6 +131,8 @@ export function UploadStep({
       // Set the file and preview
       onChange(file)
       setPreview("/diverse-group-selfie.png")
+      setHasNewUpload(true)
+      setIsFaceLocked(false)
     } catch (error) {
       console.error("Error loading demo image:", error)
     }
@@ -186,6 +194,7 @@ export function UploadStep({
         onSavedFaceChange(saveData.savedFaceId)
       }
       setIsFaceLocked(true)
+      setHasNewUpload(false)
 
       toast({
         title: "Face saved!",
@@ -207,7 +216,20 @@ export function UploadStep({
     setIsFaceLocked(false)
     setPreview(null)
     onChange(null)
+    setHasNewUpload(true)
     // Don't remove from localStorage yet, only when they upload a new face
+  }
+
+  const handleNext = () => {
+    if (hasNewUpload && !isFaceLocked) {
+      toast({
+        title: "Please save your face",
+        description: "You need to save your face before proceeding to the next step.",
+        variant: "destructive",
+      })
+      return
+    }
+    onNext?.()
   }
 
   if (isLoadingFace || isLoadingPreview) {
@@ -259,6 +281,7 @@ export function UploadStep({
               onClick={() => {
                 onChange(null)
                 setPreview(null)
+                setHasNewUpload(false)
               }}
             >
               Change
@@ -341,6 +364,17 @@ export function UploadStep({
           </div>
         </div>
       )}
+
+      {/* Next Button */}
+      <div className="flex justify-end mt-4">
+        <Button 
+          type="button" 
+          onClick={handleNext}
+          disabled={hasNewUpload && !isFaceLocked}
+        >
+          Next
+        </Button>
+      </div>
     </div>
   )
 }

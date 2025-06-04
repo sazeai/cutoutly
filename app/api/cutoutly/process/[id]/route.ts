@@ -8,9 +8,12 @@ import { generateCutoutlyPrompt } from "@/lib/cutoutly/prompt-generator"
 // Track processing cartoons to prevent multiple simultaneous processing
 const processingCartoons = new Set<string>()
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
-    // Use authenticated client instead of supabaseAdmin
+    // Use authenticated client
     const supabase = await createClient()
 
     // Check authentication
@@ -23,7 +26,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const cartoonId = params.id
+    // Properly await params before accessing id
+    const { id: cartoonId } = await Promise.resolve(params)
 
     if (!cartoonId) {
       return NextResponse.json({ error: "Cartoon ID is required" }, { status: 400 })
@@ -148,8 +152,8 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error("Error in process-cartoon API:", errorMsg)
-    return NextResponse.json({ error: errorMsg || "Internal server error" }, { status: 500 })
+    console.error("Error in process API:", errorMsg)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 

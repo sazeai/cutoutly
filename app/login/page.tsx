@@ -27,11 +27,10 @@ export default async function LoginPage() {
       <Header currentPage="Login" />
       <div className="relative pt-24">
         {/* Background decorative elements */}
-        <div className="absolute -top-24 -left-24 h-64 w-64 rounded-full bg-secondary-light opacity-20 blur-3xl"></div>
-        <div className="absolute top-1/3 -right-24 h-64 w-64 rounded-full bg-primary-light opacity-20 blur-3xl"></div>
-        <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-secondary-light opacity-20 blur-3xl"></div>
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,0,0,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.02)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
 
-        <div className="relative z-10 flex min-h-screen flex-col items-center justify-center px-6 py-12">
+
+        <div className="relative z-10 flex flex-col items-center justify-center px-6 py-12">
           <div className="w-full max-w-md">
             <div className="mb-8 flex justify-center">
               <Link href="/" className="flex items-center space-x-2">

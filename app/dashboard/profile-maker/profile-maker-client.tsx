@@ -135,44 +135,22 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
           setIsGenerating(false)
           setCurrentAvatarId(null)
 
-          // Add the new image to the gallery
+          // Add the new image to the gallery immediately
           if (avatar.output_image_path) {
             const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${avatar.output_image_path}`
+            
+            // Add the new image to the beginning of the array
+            setGeneratedImages(prev => [{
+              id: avatar.id,
+              url: imageUrl,
+              createdAt: avatar.created_at,
+            }, ...prev])
 
-            // Set the pending image ID to avoid duplicates
-            setPendingImageId(avatar.id)
-
-            // Fetch the latest images to ensure we have the most up-to-date list
-            const { data: latestAvatars } = await supabase
-              .from("cutoutly_avatars")
-              .select("*")
-              .eq("user_id", user.id)
-              .eq("status", "completed")
-              .order("created_at", { ascending: false })
-              .limit(12)
-
-            if (latestAvatars) {
-              setGeneratedImages(
-                latestAvatars.map((a: any) => ({
-                  id: a.id,
-                  url: a.output_image_path
-                    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${a.output_image_path}`
-                    : "",
-                  createdAt: a.created_at,
-                })),
-              )
-            }
-
-            // Clear the pending image ID after a short delay
-            setTimeout(() => {
-              setPendingImageId(null)
-            }, 500)
+            toast({
+              title: "Avatar generated!",
+              description: "Your profile picture has been created successfully.",
+            })
           }
-
-          toast({
-            title: "Avatar generated!",
-            description: "Your profile picture has been created successfully.",
-          })
           return
         }
 
@@ -204,7 +182,7 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
     const statusInterval = setInterval(checkStatus, 3000)
 
     return () => clearInterval(statusInterval)
-  }, [currentAvatarId, isGenerating, toast, user.id])
+  }, [currentAvatarId, isGenerating, toast])
 
   // Handle form submission
   const handleGenerate = async (formData: any) => {

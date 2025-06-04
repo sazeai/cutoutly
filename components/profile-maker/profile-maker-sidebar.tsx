@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Loader2 } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 import { UploadStep } from "./steps/upload-step"
 import { StyleStep } from "./steps/style-step"
 import { OutfitStep } from "./steps/outfit-step"
@@ -27,6 +28,7 @@ export function ProfileMakerSidebar({
   isLoadingFace = false,
   onSavedFaceChange,
 }: ProfileMakerSidebarProps) {
+  const { toast } = useToast()
   const [activeStep, setActiveStep] = useState("1")
   const [formData, setFormData] = useState({
     image: null,
@@ -55,6 +57,18 @@ export function ProfileMakerSidebar({
 
   const handleNext = () => {
     const currentStep = Number.parseInt(activeStep)
+    if (currentStep === 1) {
+      // Check if there's a new upload that hasn't been saved
+      const hasNewUpload = formData.image && !formData.savedFaceId
+      if (hasNewUpload) {
+        toast({
+          title: "Please save your face",
+          description: "You need to save your face before proceeding to the next step.",
+          variant: "destructive",
+        })
+        return
+      }
+    }
     if (currentStep < 4) {
       setActiveStep((currentStep + 1).toString())
     }
@@ -102,12 +116,8 @@ export function ProfileMakerSidebar({
               savedFaceId={formData.savedFaceId}
               isLoadingFace={isLoadingFace}
               onSavedFaceChange={(value) => updateFormData("savedFaceId", value)}
+              onNext={handleNext}
             />
-            <div className="flex justify-end mt-4">
-              <Button type="button" onClick={handleNext}>
-                Next
-              </Button>
-            </div>
           </TabsContent>
 
           <TabsContent value="2">

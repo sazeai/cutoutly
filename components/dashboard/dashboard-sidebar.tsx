@@ -108,12 +108,8 @@ export function DashboardSidebar({
               savedFaceId={formData.savedFaceId}
               isLoadingFace={isLoadingFace}
               onSavedFaceChange={(value) => updateFormData("savedFaceId", value)}
+              onNext={handleNext}
             />
-            <div className="flex justify-end mt-4">
-              <Button type="button" onClick={handleNext}>
-                Next
-              </Button>
-            </div>
           </TabsContent>
 
           <TabsContent value="2">

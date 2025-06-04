@@ -10,7 +10,6 @@ interface SizeStepProps {
 
 const sizes = [
   { id: "1024x1024", name: "Square", emoji: "⬛", description: "1024x1024" },
-  { id: "1536x1024", name: "Landscape", emoji: "⬜", description: "1536x1024" },
   { id: "1024x1536", name: "Portrait", emoji: "🟪", description: "1024x1536" },
   { id: "auto", name: "Auto", emoji: "✨", description: "Let AI decide" },
 ]
@@ -25,7 +24,7 @@ export function SizeStep({ value, onChange }: SizeStepProps) {
       <RadioGroup
         value={value}
         onValueChange={onChange}
-        className="grid grid-cols-2 gap-2"
+        className="grid grid-cols-3 gap-2"
       >
         {sizes.map((size) => (
           <div key={size.id}>

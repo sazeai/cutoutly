@@ -8,9 +8,19 @@ import { generateCutoutly } from "@/app/actions/generate-cutoutly"
 import { createClient } from "@/utils/supabase/client"
 import { ModeToggle } from "@/components/dashboard/mode-toggle"
 import { CustomPromptForm } from "@/components/dashboard/custom-prompt-form"
+import useSWR from "swr"
 
 interface DashboardClientProps {
   user: any
+}
+
+// Fetcher function for SWR
+const fetcher = async (url: string) => {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error("Failed to fetch data")
+  }
+  return response.json()
 }
 
 export function DashboardClient({ user }: DashboardClientProps) {
@@ -20,99 +30,37 @@ export function DashboardClient({ user }: DashboardClientProps) {
   const [savedFaceId, setSavedFaceId] = useState<string | null>(null)
   const [isLoadingFace, setIsLoadingFace] = useState(true)
   const [isCustomMode, setIsCustomMode] = useState(false)
-  const [generatedImages, setGeneratedImages] = useState<
-    Array<{
-      id: string
-      url: string
-      createdAt: string
-    }>
-  >([])
   const [pendingImageId, setPendingImageId] = useState<string | null>(null)
 
-  // Fetch existing cartoons and saved face on page load
+  // Fetch cartoons using SWR with caching
+  const { data: cartoonsData, error: cartoonsError, mutate: mutateCartoons } = useSWR(
+    user?.id ? `/api/cutoutly/cartoons?limit=12&status=completed` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      refreshInterval: 30000, // Refresh every 30 seconds
+    }
+  )
+
+  // Fetch saved face using SWR with caching
+  const { data: savedFaceData, error: savedFaceError } = useSWR(
+    savedFaceId ? `/api/cutoutly/saved-face/${savedFaceId}` : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  )
+
+  // Initialize saved face ID from localStorage
   useEffect(() => {
-    const fetchUserData = async () => {
-      setIsLoadingFace(true)
-      try {
-        // Fetch cartoons
-        const supabase = createClient()
-        const { data: cartoons } = await supabase
-          .from("cutoutly_cartoons")
-          .select("*")
-          .eq("user_id", user.id)
-          .eq("status", "completed")
-          .order("created_at", { ascending: false })
-          .limit(12)
-
-        if (cartoons) {
-          setGeneratedImages(
-            cartoons.map((cartoon: any) => ({
-              id: cartoon.id,
-              url: cartoon.output_image_path
-                ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${cartoon.output_image_path}`
-                : "",
-              createdAt: cartoon.created_at,
-            })),
-          )
-        }
-
-        // Try to get saved face ID from localStorage first
-        const storedFaceId = localStorage.getItem("cutoutly_saved_face_id")
-
-        if (storedFaceId) {
-          // Verify the saved face exists in the database
-          const { data: savedFace, error } = await supabase
-            .from("cutoutly_saved_faces")
-            .select("*")
-            .eq("id", storedFaceId)
-            .single()
-
-          if (savedFace) {
-            setSavedFaceId(storedFaceId)
-          } else {
-            // If not found, try to get the most recent saved face
-            const { data: recentFace } = await supabase
-              .from("cutoutly_saved_faces")
-              .select("*")
-              .eq("user_id", user.id)
-              .order("created_at", { ascending: false })
-              .limit(1)
-              .single()
-
-            if (recentFace) {
-              localStorage.setItem("cutoutly_saved_face_id", recentFace.id)
-              setSavedFaceId(recentFace.id)
-            } else {
-              localStorage.removeItem("cutoutly_saved_face_id")
-              setSavedFaceId(null)
-            }
-          }
-        } else {
-          // If no localStorage item, check if user has any saved faces
-          const { data: recentFace } = await supabase
-            .from("cutoutly_saved_faces")
-            .select("*")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single()
-
-          if (recentFace) {
-            localStorage.setItem("cutoutly_saved_face_id", recentFace.id)
-            setSavedFaceId(recentFace.id)
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-      } finally {
-        setIsLoadingFace(false)
-      }
+    const storedFaceId = localStorage.getItem("cutoutly_saved_face_id")
+    if (storedFaceId) {
+      setSavedFaceId(storedFaceId)
     }
-
-    if (user?.id) {
-      fetchUserData()
-    }
-  }, [user?.id])
+    setIsLoadingFace(false)
+  }, [])
 
   // Poll for status updates when generating
   useEffect(() => {
@@ -140,31 +88,11 @@ export function DashboardClient({ user }: DashboardClientProps) {
 
           // Add the new image to the gallery
           if (cartoon.output_image_path) {
-            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${cartoon.output_image_path}`
-
             // Set the pending image ID to avoid duplicates
             setPendingImageId(cartoon.id)
 
-            // Fetch the latest images to ensure we have the most up-to-date list
-            const { data: latestCartoons } = await supabase
-              .from("cutoutly_cartoons")
-              .select("*")
-              .eq("user_id", user.id)
-              .eq("status", "completed")
-              .order("created_at", { ascending: false })
-              .limit(12)
-
-            if (latestCartoons) {
-              setGeneratedImages(
-                latestCartoons.map((c: any) => ({
-                  id: c.id,
-                  url: c.output_image_path
-                    ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${c.output_image_path}`
-                    : "",
-                  createdAt: c.created_at,
-                })),
-              )
-            }
+            // Revalidate the cartoons data
+            mutateCartoons()
 
             // Clear the pending image ID after a short delay
             setTimeout(() => {
@@ -207,7 +135,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
     const statusInterval = setInterval(checkStatus, 3000)
 
     return () => clearInterval(statusInterval)
-  }, [currentCartoonId, isGenerating, toast, user.id])
+  }, [currentCartoonId, isGenerating, toast, mutateCartoons])
 
   // Handle structured form submission
   const handleGenerateStructured = async (formData: any) => {
@@ -295,13 +223,36 @@ export function DashboardClient({ user }: DashboardClientProps) {
   }
 
   // Handle image deletion
-  const handleImageDeleted = (imageId: string) => {
-    setGeneratedImages((prev) => prev.filter((img) => img.id !== imageId))
+  const handleImageDeleted = async (imageId: string) => {
+    try {
+      const response = await fetch(`/api/cutoutly/delete-image/${imageId}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to delete image")
+      }
+
+      // Revalidate the cartoons data
+      mutateCartoons()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete image",
+        variant: "destructive",
+      })
+    }
   }
+
+  // Transform cartoons data for the gallery
+  const generatedImages = cartoonsData?.cartoons?.map((cartoon: any) => ({
+    id: cartoon.id,
+    url: cartoon.image_url || "",
+    createdAt: cartoon.created_at,
+  })) || []
 
   return (
     <div className="container mx-auto pt-24 pb-12 px-4">
-
       <div className="grid grid-cols-1 lg:grid-cols-3 mt-6 gap-6">
         {/* Left Panel - Control Form */}
         <div className="lg:col-span-1">

@@ -16,6 +16,7 @@ interface UploadStepProps {
   savedFaceId?: string | null
   isLoadingFace?: boolean
   onSavedFaceChange?: (faceId: string | null) => void
+  onNext?: () => void
 }
 
 export function UploadStep({
@@ -24,6 +25,7 @@ export function UploadStep({
   savedFaceId = null,
   isLoadingFace = false,
   onSavedFaceChange,
+  onNext,
 }: UploadStepProps) {
   const { toast } = useToast()
   const [preview, setPreview] = useState<string | null>(null)
@@ -31,20 +33,30 @@ export function UploadStep({
   const [isFaceLocked, setIsFaceLocked] = useState(!!savedFaceId)
   const [savedFaceUrl, setSavedFaceUrl] = useState<string | null>(null)
   const [isLoadingPreview, setIsLoadingPreview] = useState(false)
+  const [hasNewUpload, setHasNewUpload] = useState(false)
 
   // Check for saved face on component mount or when savedFaceId changes
   useEffect(() => {
     if (savedFaceId) {
       fetchSavedFace(savedFaceId)
     } else {
+      // Clear all states when no savedFaceId
       setIsFaceLocked(false)
       setPreview(null)
       setSavedFaceUrl(null)
+      setHasNewUpload(false)
+      localStorage.removeItem("cutoutly_saved_profile_face_id")
     }
   }, [savedFaceId])
 
   // Fetch saved face details
   const fetchSavedFace = async (faceId: string) => {
+    // Don't fetch if no faceId
+    if (!faceId) {
+      setIsLoadingPreview(false)
+      return
+    }
+
     setIsLoadingPreview(true)
     try {
       // First try to get from Supabase directly
@@ -56,7 +68,16 @@ export function UploadStep({
         .single()
 
       if (error || !savedFace) {
-        throw new Error("Saved face not found in database")
+        // If face not found, just clear the state without treating it as an error
+        if (onSavedFaceChange) {
+          onSavedFaceChange(null)
+        }
+        localStorage.removeItem("cutoutly_saved_profile_face_id")
+        setIsFaceLocked(false)
+        setPreview(null)
+        setSavedFaceUrl(null)
+        setIsLoadingPreview(false)
+        return
       }
 
       // Get the image URL
@@ -64,25 +85,55 @@ export function UploadStep({
         data: { publicUrl },
       } = supabase.storage.from("cutoutly").getPublicUrl(savedFace.face_image_path)
 
-      setSavedFaceUrl(publicUrl)
-      setIsFaceLocked(true)
-      setPreview(publicUrl)
-
-      // Create a fake File object for the form
+      // Verify the URL is accessible
       try {
         const res = await fetch(publicUrl)
+        if (!res.ok) {
+          throw new Error("Image URL not accessible")
+        }
         const blob = await res.blob()
         const file = new File([blob], "saved-face.png", { type: "image/png" })
         onChange(file)
+        setSavedFaceUrl(publicUrl)
+        setIsFaceLocked(true)
+        setPreview(publicUrl)
+        setHasNewUpload(false)
       } catch (fetchError) {
         console.error("Error fetching image:", fetchError)
-        // If we can't fetch the image, at least set the preview
-        // The server action will handle getting the image from the saved face ID
+        // If we can't fetch the image, try to get a fresh URL
+        const {
+          data: { publicUrl: freshUrl },
+        } = supabase.storage.from("cutoutly").getPublicUrl(savedFace.face_image_path)
+        
+        // Try one more time with the fresh URL
+        try {
+          const res = await fetch(freshUrl)
+          if (!res.ok) {
+            throw new Error("Fresh image URL not accessible")
+          }
+          const blob = await res.blob()
+          const file = new File([blob], "saved-face.png", { type: "image/png" })
+          onChange(file)
+          setSavedFaceUrl(freshUrl)
+          setIsFaceLocked(true)
+          setPreview(freshUrl)
+          setHasNewUpload(false)
+        } catch (retryError) {
+          console.error("Error fetching image with fresh URL:", retryError)
+          // If we still can't fetch the image, clear the state
+          if (onSavedFaceChange) {
+            onSavedFaceChange(null)
+          }
+          localStorage.removeItem("cutoutly_saved_profile_face_id")
+          setIsFaceLocked(false)
+          setPreview(null)
+          setSavedFaceUrl(null)
+        }
       }
     } catch (error) {
       console.error("Error fetching saved face:", error)
 
-      // If we can't get the saved face, clear it
+      // Clear the state without treating it as an error
       if (onSavedFaceChange) {
         onSavedFaceChange(null)
       }
@@ -102,6 +153,8 @@ export function UploadStep({
     if (!file) return
 
     onChange(file)
+    setHasNewUpload(true)
+    setIsFaceLocked(false)
 
     // Create preview URL
     const objectUrl = URL.createObjectURL(file)
@@ -125,6 +178,8 @@ export function UploadStep({
       // Set the file and preview
       onChange(file)
       setPreview("/diverse-group-selfie.png")
+      setHasNewUpload(true)
+      setIsFaceLocked(false)
     } catch (error) {
       console.error("Error loading demo image:", error)
     }
@@ -186,6 +241,7 @@ export function UploadStep({
         onSavedFaceChange(saveData.savedFaceId)
       }
       setIsFaceLocked(true)
+      setHasNewUpload(false)
 
       toast({
         title: "Face saved!",
@@ -207,7 +263,12 @@ export function UploadStep({
     setIsFaceLocked(false)
     setPreview(null)
     onChange(null)
-    // Don't remove from localStorage yet, only when they upload a new face
+    setHasNewUpload(true)
+    // Remove from localStorage when unlocking
+    localStorage.removeItem("cutoutly_saved_profile_face_id")
+    if (onSavedFaceChange) {
+      onSavedFaceChange(null)
+    }
   }
 
   if (isLoadingFace || isLoadingPreview) {
@@ -259,6 +320,7 @@ export function UploadStep({
               onClick={() => {
                 onChange(null)
                 setPreview(null)
+                setHasNewUpload(false)
               }}
             >
               Change
@@ -341,6 +403,30 @@ export function UploadStep({
           </div>
         </div>
       )}
+
+      {/* Next Button */}
+      <div className="flex justify-end mt-4">
+        <Button 
+          type="button" 
+          onClick={() => {
+            if (hasNewUpload && !isFaceLocked) {
+              toast({
+                title: "Please save your face",
+                description: "You need to save your face before proceeding to the next step.",
+                variant: "destructive",
+              })
+              return
+            }
+            // Call the parent's onNext if provided
+            if (onNext) {
+              onNext()
+            }
+          }}
+          disabled={hasNewUpload && !isFaceLocked}
+        >
+          Next
+        </Button>
+      </div>
     </div>
   )
 } 
