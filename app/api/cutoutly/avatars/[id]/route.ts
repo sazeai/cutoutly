@@ -1,28 +1,24 @@
-import { createClient } from "@/utils/supabase/server"
-import { type NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/utils/supabase/server";
+import { type NextRequest, NextResponse } from "next/server";
 
-type RouteContext = {
-  params: {
-    id: string
-  }
-}
+// Define params as a Promise
+type Props = {
+  params: Promise<{ id: string }>;
+};
 
-export async function GET(
-  request: NextRequest,
-  context: RouteContext
-) {
+export async function GET(request: NextRequest, { params }: Props) {
   try {
-    const supabase = await createClient()
-    const { id: avatarId } = context.params
+    const supabase = await createClient();
+    const { id: avatarId } = await params; // Await params to resolve id
 
     // Check authentication
     const {
       data: { user },
       error: authError,
-    } = await supabase.auth.getUser()
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get the avatar
@@ -31,27 +27,27 @@ export async function GET(
       .select("*")
       .eq("id", avatarId)
       .eq("user_id", user.id)
-      .single()
+      .single();
 
     if (error || !avatar) {
-      return NextResponse.json({ error: "Avatar not found" }, { status: 404 })
+      return NextResponse.json({ error: "Avatar not found" }, { status: 404 });
     }
 
     // If avatar is completed, include the output URL
     if (avatar.status === "completed" && avatar.output_image_path) {
-      const { data: { publicUrl: outputUrl } } = supabase.storage
+      const { data } = supabase.storage
         .from("cutoutly")
-        .getPublicUrl(avatar.output_image_path)
+        .getPublicUrl(avatar.output_image_path);
 
       return NextResponse.json({
         ...avatar,
-        outputUrl,
-      })
+        outputUrl: data.publicUrl, // Access publicUrl directly
+      });
     }
 
-    return NextResponse.json(avatar)
+    return NextResponse.json(avatar);
   } catch (error) {
-    console.error("Error in avatar API:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    console.error("Error in avatar API:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-} 
+}

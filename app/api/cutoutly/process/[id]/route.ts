@@ -8,9 +8,14 @@ import { generateCutoutlyPrompt } from "@/lib/cutoutly/prompt-generator"
 // Track processing cartoons to prevent multiple simultaneous processing
 const processingCartoons = new Set<string>()
 
+// Define params as a Promise
+type Props = {
+  params: Promise<{ id: string }>
+}
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: Props
 ) {
   try {
     // Use authenticated client
@@ -27,7 +32,7 @@ export async function POST(
     }
 
     // Properly await params before accessing id
-    const { id: cartoonId } = await Promise.resolve(params)
+    const { id: cartoonId } = await params
 
     if (!cartoonId) {
       return NextResponse.json({ error: "Cartoon ID is required" }, { status: 400 })

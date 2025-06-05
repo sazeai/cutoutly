@@ -1,9 +1,14 @@
 import { createClient } from "@/utils/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
+// Define params as a Promise
+type Props = {
+  params: Promise<{ id: string }>
+}
+
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: Props
 ) {
   // Initialize response data
   let responseData = {
@@ -15,12 +20,12 @@ export async function DELETE(
 
   try {
     // Validate the image ID parameter
-    if (!params?.id) {
+    const { id: imageId } = await params
+
+    if (!imageId) {
       responseData.error = "Image ID is required"
       return NextResponse.json(responseData, { status: 400 })
     }
-
-    const imageId = params.id
 
     // Get the authenticated user
     const supabase = await createClient()

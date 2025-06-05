@@ -8,9 +8,14 @@ import { generateAvatarPrompt } from "@/lib/cutoutly/avatar-prompt-generator"
 // Track processing avatars to prevent multiple simultaneous processing
 const processingAvatars = new Set<string>()
 
+// Define params as a Promise
+type Props = {
+  params: Promise<{ id: string }>
+}
+
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: Props
 ) {
   try {
     // Use authenticated client
@@ -27,7 +32,7 @@ export async function POST(
     }
 
     // Properly await params before accessing id
-    const { id: avatarId } = await Promise.resolve(params)
+    const { id: avatarId } = await params
 
     if (!avatarId) {
       return NextResponse.json({ error: "Avatar ID is required" }, { status: 400 })

@@ -4,9 +4,14 @@ import { type NextRequest, NextResponse } from "next/server"
 // Cache duration in seconds (1 hour)
 const CACHE_DURATION = 3600
 
+// Define params as a Promise
+type Props = {
+  params: Promise<{ id: string }>
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: Props
 ) {
   try {
     // Use authenticated client
@@ -23,7 +28,7 @@ export async function GET(
     }
 
     // Properly await params before accessing id
-    const { id: faceId } = await Promise.resolve(params)
+    const { id: faceId } = await params
 
     if (!faceId) {
       return NextResponse.json({ error: "Face ID is required" }, { status: 400 })

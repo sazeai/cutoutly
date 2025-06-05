@@ -1,9 +1,17 @@
 import { createClient } from "@/utils/supabase/server"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+// Define params as a Promise
+type Props = {
+  params: Promise<{ id: string }>
+}
+
+export async function GET(
+  request: NextRequest,
+  { params }: Props
+) {
   try {
-    // Use authenticated client instead of supabaseAdmin
+    // Use authenticated client
     const supabase = await createClient()
 
     // Check authentication
@@ -16,17 +24,19 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const cartoonId = params.id
+    // Properly await params before accessing id
+    const { id: cartoonId } = await params
 
     if (!cartoonId) {
       return NextResponse.json({ error: "Cartoon ID is required" }, { status: 400 })
     }
 
-    // Get the cartoon status using the authenticated client
-    const { data, error } = await supabase
+    // Get the cartoon status
+    const { data: cartoon, error } = await supabase
       .from("cutoutly_cartoons")
-      .select("status, output_image_path, error_message, progress_stage, progress_percent")
+      .select("*")
       .eq("id", cartoonId)
+      .eq("user_id", user.id)
       .single()
 
     if (error) {
@@ -34,29 +44,25 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Failed to fetch cartoon status" }, { status: 500 })
     }
 
-    if (!data) {
+    if (!cartoon) {
       return NextResponse.json({ error: "Cartoon not found" }, { status: 404 })
     }
 
-    // Get the public URL if output_image_path exists
-    let imageUrl = null
-    if (data.output_image_path) {
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("cutoutly").getPublicUrl(data.output_image_path)
-      imageUrl = publicUrl
+    // If cartoon is completed, include the output URL
+    if (cartoon.status === "completed" && cartoon.output_image_path) {
+      const { data: { publicUrl: outputUrl } } = supabase.storage
+        .from("cutoutly")
+        .getPublicUrl(cartoon.output_image_path)
+
+      return NextResponse.json({
+        ...cartoon,
+        outputUrl,
+      })
     }
 
-    return NextResponse.json({
-      id: cartoonId,
-      status: data.status,
-      image_url: imageUrl,
-      error_message: data.error_message,
-      progress_stage: data.progress_stage,
-      progress_percent: data.progress_percent,
-    })
+    return NextResponse.json(cartoon)
   } catch (error) {
-    console.error("Error in cartoon status API:", error)
+    console.error("Error in status API:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
