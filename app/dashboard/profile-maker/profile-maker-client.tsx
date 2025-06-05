@@ -113,11 +113,11 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
     }
   }, [user?.id])
 
-  // Poll for status updates when generating
+  // Check status of current avatar generation
   useEffect(() => {
     if (!currentAvatarId || !isGenerating) return
 
-    const checkStatus = async () => {
+    const statusInterval = setInterval(async () => {
       try {
         const supabase = createClient()
 
@@ -136,7 +136,8 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
         if (avatar.status === "completed") {
           setIsGenerating(false)
           setCurrentAvatarId(null)
-
+          clearInterval(statusInterval)
+          
           // Add the new image to the gallery immediately
           if (avatar.output_image_path) {
             const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${avatar.output_image_path}`
@@ -159,6 +160,7 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
         if (avatar.status === "failed") {
           setIsGenerating(false)
           setCurrentAvatarId(null)
+          clearInterval(statusInterval)
           toast({
             title: "Generation failed",
             description: avatar.error_message || "An unexpected error occurred.",
@@ -176,12 +178,16 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
         }
       } catch (error) {
         console.error("Error checking avatar status:", error)
+        setIsGenerating(false)
+        setCurrentAvatarId(null)
+        clearInterval(statusInterval)
+        toast({
+          title: "Error",
+          description: "Failed to check avatar status. Please try again.",
+          variant: "destructive",
+        })
       }
-    }
-
-    // Check status immediately and then every 3 seconds
-    checkStatus()
-    const statusInterval = setInterval(checkStatus, 3000)
+    }, 2000)
 
     return () => clearInterval(statusInterval)
   }, [currentAvatarId, isGenerating, toast])
@@ -256,7 +262,7 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
           <ImageGallery
             images={generatedImages}
             isGenerating={isGenerating}
-            pendingImageId={pendingImageId}
+            pendingImageId={currentAvatarId}
             onImageDeleted={handleImageDeleted}
           />
         </div>

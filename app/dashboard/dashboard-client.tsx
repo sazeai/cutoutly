@@ -31,6 +31,11 @@ export function DashboardClient({ user }: DashboardClientProps) {
   const [isLoadingFace, setIsLoadingFace] = useState(true)
   const [isCustomMode, setIsCustomMode] = useState(false)
   const [pendingImageId, setPendingImageId] = useState<string | null>(null)
+  const [generatedImages, setGeneratedImages] = useState<Array<{
+    id: string
+    url: string
+    createdAt: string
+  }>>([])
 
   // Fetch cartoons using SWR with caching
   const { data: cartoonsData, error: cartoonsError, mutate: mutateCartoons } = useSWR(
@@ -144,24 +149,22 @@ export function DashboardClient({ user }: DashboardClientProps) {
           setIsGenerating(false)
           setCurrentCartoonId(null)
 
-          // Add the new image to the gallery
+          // Add the new image to the gallery immediately
           if (cartoon.output_image_path) {
-            // Set the pending image ID to avoid duplicates
-            setPendingImageId(cartoon.id)
+            const imageUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/cutoutly/${cartoon.output_image_path}`
+            
+            // Add the new image to the beginning of the array
+            setGeneratedImages(prev => [{
+              id: cartoon.id,
+              url: imageUrl,
+              createdAt: cartoon.created_at,
+            }, ...prev])
 
-            // Revalidate the cartoons data
-            mutateCartoons()
-
-            // Clear the pending image ID after a short delay
-            setTimeout(() => {
-              setPendingImageId(null)
-            }, 500)
+            toast({
+              title: "Cartoon generated!",
+              description: "Your cartoon PNG has been created successfully.",
+            })
           }
-
-          toast({
-            title: "Cartoon generated!",
-            description: "Your cartoon PNG has been created successfully.",
-          })
           return
         }
 
@@ -194,6 +197,19 @@ export function DashboardClient({ user }: DashboardClientProps) {
 
     return () => clearInterval(statusInterval)
   }, [currentCartoonId, isGenerating, toast, mutateCartoons])
+
+  // Update generatedImages when cartoonsData changes
+  useEffect(() => {
+    if (cartoonsData?.cartoons) {
+      setGeneratedImages(
+        cartoonsData.cartoons.map((cartoon: any) => ({
+          id: cartoon.id,
+          url: cartoon.image_url || "",
+          createdAt: cartoon.created_at,
+        }))
+      )
+    }
+  }, [cartoonsData])
 
   // Handle structured form submission
   const handleGenerateStructured = async (formData: any) => {
@@ -301,13 +317,6 @@ export function DashboardClient({ user }: DashboardClientProps) {
       })
     }
   }
-
-  // Transform cartoons data for the gallery
-  const generatedImages = cartoonsData?.cartoons?.map((cartoon: any) => ({
-    id: cartoon.id,
-    url: cartoon.image_url || "",
-    createdAt: cartoon.created_at,
-  })) || []
 
   return (
     <div className="container mx-auto pt-24 pb-12 px-4">
