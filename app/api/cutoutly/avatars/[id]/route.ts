@@ -1,13 +1,19 @@
 import { createClient } from "@/utils/supabase/server"
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
+
+type RouteContext = {
+  params: {
+    id: string
+  }
+}
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: RouteContext
 ) {
   try {
     const supabase = await createClient()
-    const { id: avatarId } = params
+    const { id: avatarId } = context.params
 
     // Check authentication
     const {
