@@ -22,8 +22,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    // Properly await params before accessing id
-    const { id: faceId } = await Promise.resolve(params)
+    const { id: faceId } = params
 
     if (!faceId) {
       return NextResponse.json({ error: "Face ID is required" }, { status: 400 })

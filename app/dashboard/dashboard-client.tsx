@@ -53,14 +53,72 @@ export function DashboardClient({ user }: DashboardClientProps) {
     }
   )
 
-  // Initialize saved face ID from localStorage
+  // Initialize saved face ID and fetch most recent face
   useEffect(() => {
-    const storedFaceId = localStorage.getItem("cutoutly_saved_face_id")
-    if (storedFaceId) {
-      setSavedFaceId(storedFaceId)
+    const fetchUserData = async () => {
+      setIsLoadingFace(true)
+      try {
+        const supabase = createClient()
+        
+        // Try to get saved face ID from localStorage first
+        const storedFaceId = localStorage.getItem("cutoutly_saved_face_id")
+
+        if (storedFaceId) {
+          // Verify the saved face exists in the database
+          const { data: savedFace, error } = await supabase
+            .from("cutoutly_saved_faces")
+            .select("*")
+            .eq("id", storedFaceId)
+            .single()
+
+          if (savedFace) {
+            setSavedFaceId(storedFaceId)
+          } else {
+            // If not found, try to get the most recent saved face
+            const { data: recentFace } = await supabase
+              .from("cutoutly_saved_faces")
+              .select("*")
+              .eq("user_id", user.id)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .single()
+
+            if (recentFace) {
+              localStorage.setItem("cutoutly_saved_face_id", recentFace.id)
+              setSavedFaceId(recentFace.id)
+            } else {
+              localStorage.removeItem("cutoutly_saved_face_id")
+              setSavedFaceId(null)
+            }
+          }
+        } else {
+          // If no localStorage item, get the most recent saved face
+          const { data: recentFace } = await supabase
+            .from("cutoutly_saved_faces")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single()
+
+          if (recentFace) {
+            localStorage.setItem("cutoutly_saved_face_id", recentFace.id)
+            setSavedFaceId(recentFace.id)
+          } else {
+            setSavedFaceId(null)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error)
+      } finally {
+        setIsLoadingFace(false)
+      }
     }
-    setIsLoadingFace(false)
-  }, [])
+
+    if (user?.id) {
+      fetchUserData()
+    }
+  }, [user?.id])
 
   // Poll for status updates when generating
   useEffect(() => {

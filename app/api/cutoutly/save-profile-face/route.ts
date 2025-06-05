@@ -30,6 +30,25 @@ export async function POST(request: NextRequest) {
       imagePath 
     })
 
+    // Verify the image exists in storage before saving
+    const { data: imageExists, error: checkError } = await supabase.storage
+      .from("cutoutly")
+      .list(imagePath.split("/").slice(0, -1).join("/"))
+
+    if (checkError) {
+      console.error("❌ Error checking image existence:", checkError)
+      return NextResponse.json({ error: "Failed to verify image" }, { status: 500 })
+    }
+
+    const imageName = imagePath.split("/").pop()
+    if (!imageExists?.some(file => file.name === imageName)) {
+      console.error("❌ Image file not found in storage:", { 
+        path: imagePath,
+        files: imageExists?.map(f => f.name)
+      })
+      return NextResponse.json({ error: "Image file not found in storage" }, { status: 404 })
+    }
+
     // Use upsert to either update existing face or create new one
     const { data, error } = await supabase
       .from("cutoutly_saved_profile_faces")

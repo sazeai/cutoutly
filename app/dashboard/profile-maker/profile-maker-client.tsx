@@ -85,7 +85,7 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
             }
           }
         } else {
-          // If no localStorage item, check if user has any saved faces
+          // If no localStorage item, get the most recent saved face
           const { data: recentFace } = await supabase
             .from("cutoutly_saved_profile_faces")
             .select("*")
@@ -97,6 +97,8 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
           if (recentFace) {
             localStorage.setItem("cutoutly_saved_profile_face_id", recentFace.id)
             setSavedFaceId(recentFace.id)
+          } else {
+            setSavedFaceId(null)
           }
         }
       } catch (error) {
