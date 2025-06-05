@@ -197,7 +197,6 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
         style: formData.style,
         expression: formData.expression,
         outfitTheme: formData.outfitTheme,
-        size: formData.size,
         userId: user.id,
       })
 

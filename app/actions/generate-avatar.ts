@@ -15,14 +15,27 @@ interface AvatarGenerationData {
   userId: string
 }
 
-export async function generateAvatar(data: AvatarGenerationData) {
+export async function generateAvatar({
+  image,
+  savedFaceId,
+  style,
+  expression,
+  outfitTheme,
+  userId,
+}: {
+  image: File | null
+  savedFaceId: string | null
+  style: string
+  expression: string
+  outfitTheme: string
+  userId: string
+}) {
   console.log("🚀 Starting generateAvatar with data:", {
-    style: data.style,
-    expression: data.expression,
-    outfitTheme: data.outfitTheme,
-    size: data.size,
-    hasImage: !!data.image,
-    savedFaceId: data.savedFaceId
+    style: style,
+    expression: expression,
+    outfitTheme: outfitTheme,
+    hasImage: !!image,
+    savedFaceId: savedFaceId
   })
 
   try {
@@ -48,97 +61,48 @@ export async function generateAvatar(data: AvatarGenerationData) {
 
     // Create a new avatar entry
     console.log("📝 Creating new avatar entry...")
-    const { data: avatar, error: avatarError } = await supabase
-      .from("cutoutly_avatars")
-      .insert({
-        user_id: user.id,
-        status: "processing",
-        style: data.style,
-        expression: data.expression,
-        outfit_theme: data.outfitTheme,
-        size: data.size,
-        saved_face_id: data.savedFaceId || null,
-      })
-      .select()
-      .single()
-
-    if (avatarError) {
-      console.error("❌ Error creating avatar:", avatarError)
-      return { success: false, error: "Failed to create avatar" }
-    }
-    console.log("✅ Avatar entry created:", { avatarId: avatar.id })
-
+    
+    // Define fileName before using it
+    let fileName: string | null = null;
+    
     // If we have a saved face ID, we don't need to upload the image
-    if (data.savedFaceId) {
-      console.log("🔄 Using saved face ID:", data.savedFaceId)
+    if (savedFaceId) {
+      console.log("🔄 Using saved face ID:", savedFaceId)
       // Get the saved face details
       const { data: savedFace, error: savedFaceError } = await supabase
         .from("cutoutly_saved_profile_faces")
         .select("*")
-        .eq("id", data.savedFaceId)
+        .eq("id", savedFaceId)
         .single()
 
-      if (savedFaceError) {
+      if (savedFaceError || !savedFace) {
         console.error("❌ Error fetching saved face:", savedFaceError)
-        return { success: false, error: `Failed to fetch saved face: ${savedFaceError.message}` }
+        return { success: false, error: "Failed to fetch saved face" }
       }
-
-      if (!savedFace) {
-        console.error("❌ Saved face not found")
-        return { success: false, error: "Saved face not found" }
-      }
-
-      if (!savedFace.face_image_path) {
-        console.error("❌ Saved face has no image path")
-        return { success: false, error: "Saved face has no image path" }
-      }
-
-      console.log("✅ Saved face found:", { 
-        savedFaceId: savedFace.id,
-        imagePath: savedFace.face_image_path 
-      })
 
       // Verify the image exists in storage
       const { data: imageExists, error: checkError } = await supabase.storage
         .from("cutoutly")
         .list(savedFace.face_image_path.split("/").slice(0, -1).join("/"))
 
-      if (checkError) {
-        console.error("❌ Error checking image existence:", checkError)
-        return { success: false, error: `Failed to verify image: ${checkError.message}` }
+      if (checkError || !imageExists?.some(file => file.name === savedFace.face_image_path.split("/").pop())) {
+        console.error("❌ Saved face image not found in storage")
+        return { success: false, error: "Saved face image not found" }
       }
 
-      const imageName = savedFace.face_image_path.split("/").pop()
-      if (!imageExists?.some(file => file.name === imageName)) {
-        console.error("❌ Image file not found in storage")
-        return { success: false, error: "Image file not found in storage" }
-      }
-
-      // Update the avatar with the saved face path
-      const { error: updateError } = await supabase
-        .from("cutoutly_avatars")
-        .update({
-          input_image_path: savedFace.face_image_path,
-        })
-        .eq("id", avatar.id)
-
-      if (updateError) {
-        console.error("❌ Error updating avatar with saved face:", updateError)
-        return { success: false, error: `Failed to update avatar with saved face: ${updateError.message}` }
-      }
-      console.log("✅ Avatar updated with saved face path")
-    } else if (data.image) {
+      fileName = savedFace.face_image_path
+    } else if (image) {
       console.log("📤 Uploading new image...")
       // Upload the image if provided
-      const arrayBuffer = await data.image.arrayBuffer()
+      const arrayBuffer = await image.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
 
-      // Use the correct avatars directory for profile maker images
-      const fileName = `cutoutly/avatars/${user.id}/${uuidv4()}_${data.image.name.replace(/\s+/g, "_")}`
+      // Use the avatars directory for profile maker input images
+      fileName = `cutoutly/avatars/${userId}/${uuidv4()}_${image.name.replace(/\s+/g, "_")}`
       console.log("📁 Generated file name:", fileName)
 
       const { error: uploadError } = await supabase.storage.from("cutoutly").upload(fileName, buffer, {
-        contentType: data.image.type,
+        contentType: image.type,
         upsert: false,
       })
 
@@ -146,25 +110,31 @@ export async function generateAvatar(data: AvatarGenerationData) {
         console.error("❌ Error uploading image:", uploadError)
         return { success: false, error: "Failed to upload image" }
       }
-      console.log("✅ Image uploaded successfully")
-
-      // Update the avatar with the uploaded image path
-      const { error: updateError } = await supabase
-        .from("cutoutly_avatars")
-        .update({
-          input_image_path: fileName,
-        })
-        .eq("id", avatar.id)
-
-      if (updateError) {
-        console.error("❌ Error updating avatar with image path:", updateError)
-        return { success: false, error: "Failed to update avatar with image path" }
-      }
-      console.log("✅ Avatar updated with new image path")
-    } else {
-      console.error("❌ No image provided")
-      return { success: false, error: "No image provided" }
     }
+
+    if (!fileName) {
+      console.error("❌ No image file name available")
+      return { success: false, error: "No image file name available" }
+    }
+
+    const { data: avatar, error: insertError } = await supabase
+      .from("cutoutly_avatars")
+      .insert({
+        user_id: userId,
+        input_image_path: fileName,
+        style,
+        expression,
+        outfit_theme: outfitTheme,
+        status: "initializing",
+      })
+      .select()
+      .single()
+
+    if (insertError) {
+      console.error("❌ Error creating avatar:", insertError)
+      return { success: false, error: "Failed to create avatar" }
+    }
+    console.log("✅ Avatar entry created:", { avatarId: avatar.id })
 
     // Get the host from headers
     const headersList = await headers()

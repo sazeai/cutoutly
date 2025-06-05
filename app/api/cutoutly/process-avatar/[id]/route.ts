@@ -196,7 +196,7 @@ async function processGenerateAvatar(avatarId: string, avatar: any, supabase: an
         image: [imageFile], // Pass as an array of File objects
         prompt: prompt,
         n: 1,
-        size: avatar.size as "1024x1024" | "1024x1536" | "auto",
+        size: "1024x1024",
         quality: "medium",
         background: "auto",
       })
@@ -226,8 +226,8 @@ async function processGenerateAvatar(avatarId: string, avatar: any, supabase: an
       })
 
       if (uploadError) {
-        console.error(`Error uploading generated image:`, uploadError)
-        throw new Error(`Error uploading generated image: ${uploadError.message}`)
+        console.error("❌ Error uploading generated image:", uploadError)
+        throw new Error(`Failed to upload generated image: ${uploadError.message}`)
       }
 
       // Get the public URL
@@ -235,8 +235,8 @@ async function processGenerateAvatar(avatarId: string, avatar: any, supabase: an
         data: { publicUrl },
       } = supabase.storage.from("cutoutly").getPublicUrl(fileName)
 
-      // Update the avatar with the URL using the authenticated client
-      const { error } = await supabase
+      // First update to avatar_generated stage
+      const { error: stageError } = await supabase
         .from("cutoutly_avatars")
         .update({
           output_image_path: fileName,
@@ -247,17 +247,37 @@ async function processGenerateAvatar(avatarId: string, avatar: any, supabase: an
         .eq("id", avatarId)
         .eq("user_id", userId)
 
-      if (error) {
-        console.error(`Error updating avatar after OpenAI call:`, error)
-        throw new Error(`Failed to update avatar after OpenAI call: ${error.message}`)
+      if (stageError) {
+        console.error("❌ Error updating avatar stage:", stageError)
+        throw new Error(`Failed to update avatar stage: ${stageError.message}`)
       }
 
-      console.log(`✅ Updated avatar ${avatarId} to stage: avatar_generated`)
+      console.log("✅ Updated avatar to stage: avatar_generated")
+
+      // Then update to completed status
+      const { error: completeError } = await supabase
+        .from("cutoutly_avatars")
+        .update({
+          status: "completed",
+          progress_stage: "completed",
+          progress_percent: 100,
+          last_processed: new Date().toISOString(),
+        })
+        .eq("id", avatarId)
+        .eq("user_id", userId)
+
+      if (completeError) {
+        console.error("❌ Error completing avatar:", completeError)
+        throw new Error(`Failed to complete avatar: ${completeError.message}`)
+      }
+
+      console.log("✅ Avatar generation completed successfully")
 
       return NextResponse.json({
-        status: "processing",
-        progress_stage: "avatar_generated",
-        progress_percent: 80,
+        status: "completed",
+        progress_stage: "completed",
+        progress_percent: 100,
+        image_url: fileName,
         message: "Avatar generated successfully",
       })
     } catch (error: any) {

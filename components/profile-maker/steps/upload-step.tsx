@@ -207,7 +207,7 @@ export function UploadStep({
         formData.append("file", value)
 
         // Upload to a temporary location
-        const uploadResponse = await fetch("/api/cutoutly/upload-face", {
+        const uploadResponse = await fetch("/api/cutoutly/upload-profile-face", {
           method: "POST",
           body: formData,
         })

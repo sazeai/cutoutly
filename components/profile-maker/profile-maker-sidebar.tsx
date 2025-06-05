@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast"
 import { UploadStep } from "./steps/upload-step"
 import { StyleStep } from "./steps/style-step"
 import { OutfitStep } from "./steps/outfit-step"
-import { SizeStep } from "./steps/size-step"
 
 interface ProfileMakerSidebarProps {
   onGenerate: (formData: any) => void
@@ -36,7 +35,6 @@ export function ProfileMakerSidebar({
     style: "realistic",
     expression: "smiling",
     outfitTheme: "casual",
-    size: "1024x1024",
   })
 
   // Update formData when savedFaceId prop changes
@@ -69,7 +67,7 @@ export function ProfileMakerSidebar({
         return
       }
     }
-    if (currentStep < 4) {
+    if (currentStep < 3) {
       setActiveStep((currentStep + 1).toString())
     }
   }
@@ -90,8 +88,8 @@ export function ProfileMakerSidebar({
     <Card className="border-2 border-black rounded-xl bg-white p-4 shadow-[4px_4px_0_rgba(0,0,0,1)]">
       <form onSubmit={handleSubmit}>
         <Tabs value={activeStep} onValueChange={setActiveStep} className="w-full">
-          <TabsList className="grid grid-cols-4 mb-4">
-            {[...Array(4)].map((_, i) => (
+          <TabsList className="grid grid-cols-3 mb-4">
+            {[...Array(3)].map((_, i) => (
               <TabsTrigger
                 key={i}
                 value={(i + 1).toString()}
@@ -141,19 +139,6 @@ export function ProfileMakerSidebar({
           <TabsContent value="3">
             <h3 className="text-xl font-bold mb-4">Outfit Theme</h3>
             <OutfitStep value={formData.outfitTheme} onChange={(value) => updateFormData("outfitTheme", value)} />
-            <div className="flex justify-between mt-4">
-              <Button type="button" variant="outline" onClick={handlePrevious}>
-                Back
-              </Button>
-              <Button type="button" onClick={handleNext}>
-                Next
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="4">
-            <h3 className="text-xl font-bold mb-4">Size Selection</h3>
-            <SizeStep value={formData.size} onChange={(value) => updateFormData("size", value)} />
             <div className="flex justify-between mt-4">
               <Button type="button" variant="outline" onClick={handlePrevious}>
                 Back
