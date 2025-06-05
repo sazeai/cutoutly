@@ -1,7 +1,14 @@
 import { createServerSupabaseClient } from "@/lib/supabase"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+// Define the type for the params
+interface Params {
+  params: {
+    id: string;
+  };
+}
+
+export async function GET(request: NextRequest, { params }: Params) {
   try {
     const comicId = params.id
 
