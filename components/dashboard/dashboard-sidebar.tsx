@@ -194,7 +194,7 @@ export function DashboardSidebar({
               </Button>
               <Button
                 type="submit"
-                className="bg-gradient-to-r from-primary to-secondary text-white"
+                className="rounded-xl text-black border-2 border-black bg-white shadow-[4px_4px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all hover:text-white"
                 disabled={isGenerating}
               >
                 {isGenerating ? (

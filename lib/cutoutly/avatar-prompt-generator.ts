@@ -1,14 +1,12 @@
 interface AvatarPromptOptions {
   style: string
   expression: string
-  outfitTheme: string
   useCase?: string
 }
 
 export function generateAvatarPrompt({
   style,
   expression,
-  outfitTheme,
   useCase = "profile",
 }: AvatarPromptOptions): string {
   const stylePrompts = {

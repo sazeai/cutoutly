@@ -191,7 +191,6 @@ async function processGenerateAvatar(avatarId: string, avatar: any, supabase: an
       const prompt = generateAvatarPrompt({
         style: avatar.style,
         expression: avatar.expression,
-        outfitTheme: avatar.outfit_theme,
         useCase: avatar.use_case,
       })
 

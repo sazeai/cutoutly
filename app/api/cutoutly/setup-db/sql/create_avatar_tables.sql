@@ -1,29 +1,18 @@
 -- Create cutoutly_avatars table
 CREATE TABLE IF NOT EXISTS cutoutly_avatars (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID,
-  status VARCHAR(50) NOT NULL DEFAULT 'processing',
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  input_image_path TEXT NOT NULL,
+  output_image_path TEXT,
+  style VARCHAR(50) NOT NULL,
+  expression VARCHAR(50) NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'initializing',
   progress_stage VARCHAR(50),
   progress_percent INTEGER DEFAULT 0,
   error_message TEXT,
-  
-  -- Input parameters
-  input_image_path TEXT,
-  style VARCHAR(50),
-  expression VARCHAR(50),
-  background_type VARCHAR(50),
-  background_value TEXT,
-  outfit_theme VARCHAR(50),
-  size VARCHAR(20),
-  
-  -- Output
-  output_image_path TEXT,
-  prompt TEXT,
-  
-  -- Timestamps
+  last_processed TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  last_processed TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create index for faster queries

@@ -10,8 +10,6 @@ interface AvatarGenerationData {
   savedFaceId?: string | null
   style: string
   expression: string
-  outfitTheme: string
-  size: string
   userId: string
 }
 
@@ -20,20 +18,19 @@ export async function generateAvatar({
   savedFaceId,
   style,
   expression,
-  outfitTheme,
+
   userId,
 }: {
   image: File | null
   savedFaceId: string | null
   style: string
   expression: string
-  outfitTheme: string
+ 
   userId: string
 }) {
   console.log("🚀 Starting generateAvatar with data:", {
     style: style,
     expression: expression,
-    outfitTheme: outfitTheme,
     hasImage: !!image,
     savedFaceId: savedFaceId
   })
@@ -124,7 +121,6 @@ export async function generateAvatar({
         input_image_path: fileName,
         style,
         expression,
-        outfit_theme: outfitTheme,
         status: "initializing",
       })
       .select()

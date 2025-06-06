@@ -139,7 +139,7 @@ export function FeatureSections() {
               </h2>
 
               <p className="text-xl text-gray-600 leading-relaxed">
-                Generate stunning AI profile pictures in dozens of styles. Choose your expression, outfit, and more.
+                Generate stunning AI profile pictures in dozens of styles. Choose your expression and more.
                 Great for LinkedIn, social media, or just for fun!
               </p>
 
@@ -157,9 +157,8 @@ export function FeatureSections() {
               {/* Feature highlights */}
               <div className="grid grid-cols-2 gap-4">
                 {[
-                  { icon: "🎭", label: "Dozens of Styles" },
-                  { icon: "😊", label: "Custom Expression" },
-                  { icon: "👔", label: "Choose Outfit" },
+                  { icon: "🎨", label: "Choose Style" },
+                  { icon: "😊", label: "Pick Expression" },
                   { icon: "💼", label: "LinkedIn Ready" },
                 ].map((feature, index) => (
                   <div

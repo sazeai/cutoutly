@@ -80,8 +80,8 @@ export async function POST(request: Request) {
     }
 
     // Validate required fields
-    const { style, expression, outfitTheme, size, savedFaceId } = body
-    if (!style || !expression || !outfitTheme || !size || !savedFaceId) {
+    const { style, expression, size, savedFaceId } = body
+    if (!style || !expression || !size || !savedFaceId) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -104,23 +104,20 @@ export async function POST(request: Request) {
     }
 
     // Create avatar entry
-    const { data: avatar, error: createError } = await supabase
+    const { data: avatar, error: insertError } = await supabase
       .from("cutoutly_avatars")
       .insert({
-        id: uuidv4(),
         user_id: user.id,
+        input_image_path: savedFace.face_image_path,
         style,
         expression,
-        outfit_theme: outfitTheme,
-        size,
-        status: "pending",
-        input_image_path: savedFace.face_image_path,
+        status: "initializing",
       })
       .select()
       .single()
 
-    if (createError) {
-      console.error("Error creating avatar:", createError)
+    if (insertError) {
+      console.error("Error creating avatar:", insertError)
       return NextResponse.json(
         { error: "Failed to create avatar" },
         { status: 500 }

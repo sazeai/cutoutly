@@ -60,7 +60,7 @@ export function StyleStep({ style, expression, onStyleChange, onExpressionChange
         </TabsList>
 
         <TabsContent value="style" className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-5 gap-3">
             {styles.map((s) => (
               <Card
                 key={s.id}
@@ -75,14 +75,14 @@ export function StyleStep({ style, expression, onStyleChange, onExpressionChange
                   alt={s.name}
                   className="mb-2 w-8 h-8 rounded-full object-cover border border-gray-200"
                 />
-                <span className="text-sm font-medium">{s.name}</span>
+                <span className="text-[10px] font-medium text-center">{s.name}</span>
               </Card>
             ))}
           </div>
         </TabsContent>
 
         <TabsContent value="expression" className="space-y-4">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-5 gap-3">
             {expressions.map((e) => (
               <Card
                 key={e.id}
@@ -93,7 +93,7 @@ export function StyleStep({ style, expression, onStyleChange, onExpressionChange
                 onClick={() => onExpressionChange(e.id)}
               >
                 <span className="mb-2 text-2xl">{e.emoji}</span>
-                <span className="text-sm font-medium">{e.name}</span>
+                <span className="text-[10px] font-medium">{e.name}</span>
               </Card>
             ))}
           </div>

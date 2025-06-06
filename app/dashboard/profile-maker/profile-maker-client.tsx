@@ -202,7 +202,6 @@ export function ProfileMakerClient({ user }: ProfileMakerClientProps) {
         savedFaceId: formData.savedFaceId || null,
         style: formData.style,
         expression: formData.expression,
-        outfitTheme: formData.outfitTheme,
         userId: user.id,
       })
 

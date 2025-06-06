@@ -7,7 +7,6 @@ import { Loader2 } from "lucide-react"
 interface PreviewStepProps {
   style: string
   expression: string
-  outfit: string
   onGenerate: () => void
   isGenerating: boolean
   onBack: () => void
@@ -16,7 +15,6 @@ interface PreviewStepProps {
 export function PreviewStep({
   style,
   expression,
-  outfit,
   onGenerate,
   isGenerating,
   onBack,
@@ -41,10 +39,6 @@ export function PreviewStep({
               <h4 className="text-sm font-medium mb-1">Expression</h4>
               <p className="text-sm text-muted-foreground capitalize">{expression}</p>
             </div>
-            <div>
-              <h4 className="text-sm font-medium mb-1">Outfit</h4>
-              <p className="text-sm text-muted-foreground capitalize">{outfit}</p>
-            </div>
           </div>
 
           <div className="flex justify-center">
@@ -57,7 +51,7 @@ export function PreviewStep({
 
       <div className="flex justify-between">
         <Button variant="outline" onClick={onBack}>
-          Back: Outfit
+          Back
         </Button>
         <Button onClick={onGenerate} disabled={isGenerating}>
           {isGenerating ? (

@@ -10,7 +10,6 @@ import { Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { UploadStep } from "./steps/upload-step"
 import { StyleStep } from "./steps/style-step"
-import { OutfitStep } from "./steps/outfit-step"
 
 interface ProfileMakerSidebarProps {
   onGenerate: (formData: any) => void
@@ -34,7 +33,6 @@ export function ProfileMakerSidebar({
     savedFaceId: savedFaceId,
     style: "realistic",
     expression: "smiling",
-    outfitTheme: "casual",
   })
 
   // Update formData when savedFaceId prop changes
@@ -67,7 +65,7 @@ export function ProfileMakerSidebar({
         return
       }
     }
-    if (currentStep < 3) {
+    if (currentStep < 2) {
       setActiveStep((currentStep + 1).toString())
     }
   }
@@ -88,8 +86,8 @@ export function ProfileMakerSidebar({
     <Card className="border-2 border-black rounded-xl bg-white p-4 shadow-[4px_4px_0_rgba(0,0,0,1)]">
       <form onSubmit={handleSubmit}>
         <Tabs value={activeStep} onValueChange={setActiveStep} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-4">
-            {[...Array(3)].map((_, i) => (
+          <TabsList className="grid grid-cols-2 mb-4">
+            {[...Array(2)].map((_, i) => (
               <TabsTrigger
                 key={i}
                 value={(i + 1).toString()}
@@ -130,22 +128,9 @@ export function ProfileMakerSidebar({
               <Button type="button" variant="outline" onClick={handlePrevious}>
                 Back
               </Button>
-              <Button type="button" onClick={handleNext}>
-                Next
-              </Button>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="3">
-            <h3 className="text-xl font-bold mb-4">Outfit Theme</h3>
-            <OutfitStep value={formData.outfitTheme} onChange={(value) => updateFormData("outfitTheme", value)} />
-            <div className="flex justify-between mt-4">
-              <Button type="button" variant="outline" onClick={handlePrevious}>
-                Back
-              </Button>
               <Button
                 type="submit"
-                className="bg-gradient-to-r from-primary to-secondary text-white"
+                className="rounded-xl text-black border-2 border-black bg-white shadow-[4px_4px_0_rgba(0,0,0,1)] hover:shadow-[4px_4px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all hover:text-white"
                 disabled={isGenerating}
               >
                 {isGenerating ? (
