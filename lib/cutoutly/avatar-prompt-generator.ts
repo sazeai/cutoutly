@@ -45,23 +45,13 @@ export function generateAvatarPrompt({
     determined: "strong, focused expression with confident eyes",
   }
 
-  const outfitPrompts = {
-    none: "no specific outfit, use best suitable outfits. focus on facial features and expression",
-    casual: "casual everyday clothing like a t-shirt or sweater",
-    formal: "professional attire like a suit or formal dress,consider the appropriate gender by identifying in uploaded image",
-    sporty: "athletic wear like a jersey or sports uniform",
-    fantasy: "fantasy-themed clothing with magical elements",
-    futuristic: "futuristic clothing with high-tech elements",
-  }
 
   const stylePrompt = stylePrompts[style as keyof typeof stylePrompts] || stylePrompts.cartoon
   const expressionPrompt = expressionPrompts[expression as keyof typeof expressionPrompts] || expressionPrompts.happy
-  const outfitPrompt = outfitPrompts[outfitTheme as keyof typeof outfitPrompts] || outfitPrompts.casual
 
   return `Create a profile picture with the following characteristics:
 - Style: ${stylePrompt}
 - Expression: ${expressionPrompt}
-- Outfit: ${outfitPrompt}
 - Use a perfeect background which suits the image and social media profile picture use case.
 - The avatar should be centered and well-lit.
 - Focus on creating a personalized look that matches the style and expression.`

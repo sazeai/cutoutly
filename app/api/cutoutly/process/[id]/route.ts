@@ -246,7 +246,7 @@ async function processGenerateCartoonWithoutImage(cartoonId: string, cartoon: an
       prompt: cartoon.prompt,
       n: 1,
       size: cartoon.size as "1024x1024" | "1536x1024" | "1024x1536" | "auto",
-      quality: "medium",
+      quality: "low",
       background: "transparent", // Add this parameter to ensure transparency
     })
 

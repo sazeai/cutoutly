@@ -202,7 +202,7 @@ async function processGenerateAvatar(avatarId: string, avatar: any, supabase: an
         prompt: prompt,
         n: 1,
         size: "1024x1024",
-        quality: "medium",
+        quality: "low",
         background: "auto",
       })
 
