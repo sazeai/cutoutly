@@ -18,15 +18,15 @@ export function FeatureSections() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Content */}
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-black rounded-full shadow-[4px_4px_0_rgba(0,0,0,1)]">
-                <div className="text-2xl">🧑‍🎤</div>
+            <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0_rgba(0,0,0,1)]">
+            <div className="text-2xl">🧑‍🎤</div>
                 <span className="font-bold text-sm">Cartoon PNG Creator</span>
               </div>
 
               <h2 className="text-4xl lg:text-6xl font-black leading-tight">
-                <span className="block text-gray-900">Turn any photo into a</span>
-                <span className="block bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <span className="text-gray-900">Turn any photo into a </span>
+                <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   cartoon cutout
                 </span>
               </h2>
@@ -36,16 +36,7 @@ export function FeatureSections() {
                 and more. Perfect for social, business, or fun!
               </p>
 
-              <Button
-                asChild
-                size="lg"
-                className="bg-primary text-white font-bold text-lg px-8 py-6 rounded-2xl border-2 border-black shadow-[6px_6px_0_rgba(0,0,0,1)] hover:shadow-[8px_8px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all"
-              >
-                <Link href="/png-creator">
-                  Try PNG Creator
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </Button>
+            
 
               {/* Feature highlights */}
               <div className="grid grid-cols-2 gap-4">
@@ -125,9 +116,9 @@ export function FeatureSections() {
             </div>
 
             {/* Content - Right side for this section */}
-            <div className="space-y-8 order-1 lg:order-2">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-black rounded-full shadow-[4px_4px_0_rgba(0,0,0,1)]">
-                <span className="text-2xl">✨</span>
+            <div className="space-y-6 order-1 lg:order-2">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0_rgba(0,0,0,1)]">
+            <span className="text-2xl">✨</span>
                 <span className="font-bold text-sm">AI Profile Maker</span>
               </div>
 
@@ -143,16 +134,7 @@ export function FeatureSections() {
                 Great for LinkedIn, social media, or just for fun!
               </p>
 
-              <Button
-                asChild
-                size="lg"
-                className="bg-secondary text-white font-bold text-lg px-8 py-6 rounded-2xl border-2 border-black shadow-[6px_6px_0_rgba(0,0,0,1)] hover:shadow-[8px_8px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all"
-              >
-                <Link href="/profile-maker">
-                  Try Profile Maker
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </Button>
+            
 
               {/* Feature highlights */}
               <div className="grid grid-cols-2 gap-4">
@@ -185,8 +167,8 @@ export function FeatureSections() {
         <div className="container mx-auto px-4 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             {/* Content */}
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-black rounded-full shadow-[4px_4px_0_rgba(0,0,0,1)]">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-black rounded-xl shadow-[4px_4px_0_rgba(0,0,0,1)]">
                 <Wand2 className="w-4 h-4 text-primary" />
                 <span className="font-bold text-sm">Custom PNG Generator</span>
               </div>
@@ -203,16 +185,7 @@ export function FeatureSections() {
                 prompt into a transparent PNG, ready to use anywhere.
               </p>
 
-              <Button
-                asChild
-                size="lg"
-                className="bg-gradient-to-r from-primary to-secondary text-white font-bold text-lg px-8 py-6 rounded-2xl border-2 border-black shadow-[6px_6px_0_rgba(0,0,0,1)] hover:shadow-[8px_8px_0_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all"
-              >
-                <Link href="/custom-prompt">
-                  Try Custom Prompt
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Link>
-              </Button>
+          
 
               {/* Feature highlights */}
               <div className="grid grid-cols-2 gap-4">
