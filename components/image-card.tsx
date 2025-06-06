@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import Image from "next/image"
-import { useImages } from "@/hooks/use-images"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Download, Trash2 } from "lucide-react"
@@ -16,14 +15,11 @@ interface ImageCardProps {
   }
   type: "generated" | "saved"
   userId: string
+  onDelete?: (imageId: string) => void
 }
 
-export function ImageCard({ image, type, userId }: ImageCardProps) {
+export function ImageCard({ image, type, userId, onDelete }: ImageCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
-  const { deleteImage } = useImages({
-    userId,
-    tableName: type === "generated" ? "cutoutly_cartoons" : "cutoutly_avatars",
-  })
 
   const imageUrl = image.output_image_path
     ? `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${
@@ -34,8 +30,24 @@ export function ImageCard({ image, type, userId }: ImageCardProps) {
   const handleDelete = async () => {
     try {
       setIsDeleting(true)
-      await deleteImage(image.id)
+      const response = await fetch(`/api/cutoutly/delete-image/${image.id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || "Failed to delete image")
+      }
+
+      const data = await response.json()
+      if (!data.success) {
+        throw new Error(data.error || "Failed to delete image")
+      }
+
       toast.success("Image deleted successfully")
+      if (onDelete) {
+        onDelete(image.id)
+      }
     } catch (error) {
       console.error("Error deleting image:", error)
       toast.error("Failed to delete image")

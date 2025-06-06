@@ -44,7 +44,8 @@ export function DashboardClient({ user }: DashboardClientProps) {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      refreshInterval: 30000, // Refresh every 30 seconds
+      refreshInterval: 0, // Disable automatic refresh
+      dedupingInterval: 0, // Disable request deduplication
     }
   )
 
@@ -299,28 +300,29 @@ export function DashboardClient({ user }: DashboardClientProps) {
   // Handle image deletion
   const handleImageDeleted = async (imageId: string) => {
     try {
-      const response = await fetch(`/api/cutoutly/delete-image/${imageId}`, {
-        method: "DELETE",
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to delete image")
-      }
-
-      // Revalidate the cartoons data
-      mutateCartoons()
+      // Optimistically update the local state
+      setGeneratedImages(prev => prev.filter(img => img.id !== imageId))
+      
+      // Immediately revalidate the SWR cache
+      await mutateCartoons(
+        // Optimistically update the cache
+        (currentData: any) => ({
+          ...currentData,
+          cartoons: currentData?.cartoons?.filter((cartoon: any) => cartoon.id !== imageId) || [],
+        }),
+        // Revalidate in the background
+        { revalidate: true }
+      )
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete image",
-        variant: "destructive",
-      })
+      console.error("Error updating after deletion:", error)
+      // If there's an error, force a full revalidation
+      mutateCartoons()
     }
   }
 
   return (
     <div className="container mx-auto pt-24 pb-12 px-4">
-      <div className="grid grid-cols-1 lg:grid-cols-3 mt-6 gap-6">
+      <div className="grid mt-6 grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Panel - Control Form */}
         <div className="lg:col-span-1">
           <ModeToggle onModeChange={handleModeChange} isCustomMode={isCustomMode} />
@@ -343,7 +345,7 @@ export function DashboardClient({ user }: DashboardClientProps) {
           <ImageGallery
             images={generatedImages}
             isGenerating={isGenerating}
-            pendingImageId={pendingImageId}
+            pendingImageId={currentCartoonId}
             onImageDeleted={handleImageDeleted}
           />
         </div>

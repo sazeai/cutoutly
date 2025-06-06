@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       .from("cutoutly_cartoons")
       .select("*", { count: "exact" })
       .eq("status", status)
+      .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .range(offset, offset + limit - 1)
 

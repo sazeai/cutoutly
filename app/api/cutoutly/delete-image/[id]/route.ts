@@ -45,7 +45,7 @@ export async function DELETE(
       .select("*")
       .eq("id", imageId)
       .eq("user_id", user.id)
-      .single()
+      .maybeSingle()
 
     if (fetchError) {
       console.error("Error fetching image:", fetchError)

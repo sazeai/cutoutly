@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import Image from "next/image"
 import { Download, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -24,9 +24,9 @@ export function ImageGallery({ images, isGenerating, pendingImageId, onImageDele
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set())
   const { toast } = useToast()
 
-  const handleImageLoad = (id: string) => {
+  const handleImageLoad = useCallback((id: string) => {
     setLoadedImages((prev) => new Set(prev).add(id))
-  }
+  }, [])
 
   const handleDownload = async (image: { id: string; url: string }) => {
     if (downloadingImages.has(image.id)) return
@@ -71,7 +71,7 @@ export function ImageGallery({ images, isGenerating, pendingImageId, onImageDele
     }
   }
 
-  const handleDelete = async (imageId: string) => {
+  const handleDelete = useCallback(async (imageId: string) => {
     if (deletingImages.has(imageId)) return
 
     try {
@@ -82,13 +82,21 @@ export function ImageGallery({ images, isGenerating, pendingImageId, onImageDele
       })
 
       if (!response.ok) {
-        throw new Error("Failed to delete image")
+        const data = await response.json()
+        throw new Error(data.error || "Failed to delete image")
       }
 
       // Call the callback to update the parent component
       if (onImageDeleted) {
         onImageDeleted(imageId)
       }
+
+      // Remove from loaded images set
+      setLoadedImages((prev) => {
+        const newSet = new Set(prev)
+        newSet.delete(imageId)
+        return newSet
+      })
 
       toast({
         title: "Image deleted",
@@ -108,7 +116,7 @@ export function ImageGallery({ images, isGenerating, pendingImageId, onImageDele
         return newSet
       })
     }
-  }
+  }, [deletingImages, onImageDeleted, toast])
 
   return (
     <Card className="border-2 border-black rounded-xl bg-white p-4 shadow-[4px_4px_0_rgba(0,0,0,1)]">
